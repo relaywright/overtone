@@ -1,5 +1,19 @@
 import { test, expect } from '@playwright/test';
 
+test('unavailable audio output gives a recoverable explanation without hanging', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    AudioContext.prototype.resume = () => new Promise(() => {});
+  });
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('output device');
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Export WAV', exact: true })).toBeEnabled();
+});
+
 test('missing Web Audio support keeps the studio visible with a useful explanation', async ({
   page,
 }) => {

@@ -8,6 +8,8 @@ A spectral sound studio that runs entirely in your browser. Draw a region on a s
 
 ![OVERTONE showing a real spectral edit and its non-destructive history](docs/media/studio-edited.png)
 
+Under the surface: a custom radix-2 FFT, normalized overlap-add reconstruction, and a background worker that renders real audio before redrawing the spectrum. Tests measure the exported signal, including frequency attenuation and exact undo restoration. [Explore the architecture](docs/architecture.md) · [Release verification](docs/verification.md).
+
 <details>
 <summary>Full desktop and phone views</summary>
 

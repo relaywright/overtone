@@ -57,9 +57,18 @@ export function usePlayback(onError: (message: string) => void) {
   const start = useCallback(async () => {
     if (!buffer.current) return;
     const ticket = ++generation.current;
+    let resumeTimer: number | undefined;
     try {
       const ctx = getContext();
-      await ctx.resume();
+      await Promise.race([
+        ctx.resume(),
+        new Promise<never>((_, reject) => {
+          resumeTimer = window.setTimeout(
+            () => reject(new Error('Audio output unavailable')),
+            4000,
+          );
+        }),
+      ]);
       if (ticket !== generation.current || !buffer.current) return;
       stopSource();
       if (offset.current >= buffer.current.duration - 0.005) offset.current = 0;
@@ -82,11 +91,15 @@ export function usePlayback(onError: (message: string) => void) {
       };
       node.start(0, offset.current);
     } catch {
+      if (ticket !== generation.current) return;
+      generation.current++;
       playingRef.current = false;
       setPlaying(false);
       onError(
-        'Audio playback could not start. Try Play again or use a browser with Web Audio support.',
+        'Audio could not start. Check your browser sound permission and output device, then try Play again.',
       );
+    } finally {
+      window.clearTimeout(resumeTimer);
     }
   }, [getContext, onError, stopSource]);
   const setClip = useCallback(

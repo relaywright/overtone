@@ -68,6 +68,13 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx playwright install --with-deps firefox webkit
+      - name: Provide an audio output device for the Linux browser tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=overtone
+          pactl set-default-sink overtone
       - name: Verify both browser engines
         run: npx playwright test tests/studio.spec.ts --project desktop-firefox --project desktop-webkit
         env:
