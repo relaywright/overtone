@@ -669,7 +669,7 @@ export default function App() {
                           step={field.step}
                           disabled={busy}
                           value={selection ? Math.round(selection[field.key] * 100) / 100 : ''}
-                          placeholder="—"
+                          placeholder="–"
                           onChange={(e) => updateSelection(field.key, e.target.valueAsNumber)}
                         />
                         <span>{field.unit}</span>
@@ -722,7 +722,7 @@ export default function App() {
                     {selection ? (
                       <>
                         <strong>
-                          {fmtHz(selection.lowHz)} — {fmtHz(selection.highHz)} Hz
+                          {fmtHz(selection.lowHz)}–{fmtHz(selection.highHz)} Hz
                         </strong>
                         <small>
                           {selection.startTime.toFixed(2)}s to {selection.endTime.toFixed(2)}s
