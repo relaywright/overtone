@@ -1,8 +1,10 @@
 # Release verification
 
-Verified on **October 2, 2026** against the public [OVERTONE studio](https://relaywright.github.io/overtone/).
+Verified on **October 3, 2026** against the public [OVERTONE studio](https://relaywright.github.io/overtone/). The first release was verified on October 2; this pass re-verifies the clearer on-screen copy and documentation added on October 3.
 
-Runtime source: [`c172838`](https://github.com/relaywright/overtone/commit/c172838dc287e182e3a6c165dcf3f6a677eb0acc). [Successful build, tests, and deployment](https://github.com/relaywright/overtone/actions/runs/37038252005). The subsequent release documentation and screenshots do not change the deployed application.
+Runtime source: [`9e096a7`](https://github.com/relaywright/overtone/commit/9e096a71cea8a57992b04a7595a051c6860cfc40). [Successful build, tests, and deployment](https://github.com/relaywright/overtone/actions/runs/37140318502). This report is the only change after that commit and does not affect the deployed application.
+
+The repository was recreated on October 3, 2026 with rewritten history, so commit IDs and Actions runs from the original October 2 publication no longer exist. The application at the `v1.0.0` tag is unchanged apart from its public credit.
 
 ## Evidence
 
@@ -18,8 +20,8 @@ Runtime source: [`c172838`](https://github.com/relaywright/overtone/commit/c1728
 | Other browser engines              | Eight primary journeys pass across Firefox and WebKit on Linux in CI, including real playback, import, exported samples, and accessibility.                                                                                                     |
 | Accessibility                      | Automated serious/critical accessibility checks pass for the studio and explanation dialog; keyboard, focus restoration, touch, and overflow are also exercised.                                                                                |
 | Public source and reproducibility  | Public MIT repository, locked dependencies, Windows-compatible local commands, methodology, architecture, and test-gated deployment.                                                                                                            |
-| Current presentation               | Screenshots in `docs/media/` were recaptured from the public URL after deployment and visually inspected.                                                                                                                                       |
-| Published artifact integrity       | The downloaded production JavaScript SHA-256 exactly matches the local build: `1e98efddc1bd8f2b61ec96d71deaff67930537b05dfe3f94b80f609338870f8c`.                                                                                               |
+| Current presentation               | Screenshots in `docs/media/` were recaptured from the production build of the current source and visually inspected at desktop and phone sizes.                                                                                                 |
+| Published artifact integrity       | The downloaded production JavaScript SHA-256 exactly matches the local build: `cf8a1d007fba8342b636c57c1521563f86cf2048caa52dfd90b5667f1c728462`.                                                                                               |
 | Distribution and privacy           | Third-party notices return HTTP 200. Fonts ship with the app. Source inspection finds no audio upload endpoints, analytics, API secrets, or private user documents. Production dependencies report zero known audit vulnerabilities at release. |
 
 ## Reproduce
@@ -46,5 +48,7 @@ Set `OVERTONE_CROSS_BROWSER=1` to enable the optional Firefox and WebKit project
 ## Review and limits
 
 Separate agents reviewed the signal engine, visual interaction mapping, and integration failure paths. External Gemini and Kimi reviews were attempted but could not authenticate; they are not counted as completed reviews. The available review findings were reproduced and addressed with browser regression tests.
+
+For the October 3 documentation pass, Codex fact-checked every claim in the README, user guide, customization guide and on-screen copy against the source code in three passes. All findings were corrected.
 
 Automated accessibility checks and emulated phone layouts complement manual inspection. They do not certify every assistive technology, physical phone, Safari installation, recording, or audio output configuration. Strong spectral edits can create artifacts and cannot separate overlapping sound sources; see the [processing limitations](methodology.md#limits-and-tradeoffs).
