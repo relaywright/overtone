@@ -43,6 +43,8 @@ export interface Demo {
   name: string;
   subtitle: string;
   description: string;
+  /** Label for the button that selects the target region, such as "Find the whistle". */
+  targetLabel: string;
   target: Selection;
 }
 export type WorkerRequest =

@@ -5,6 +5,7 @@ import type { Analysis, AudioClip, ProcessResult, SpectralEdit } from './types';
 export const MAX_DURATION = 60;
 export const MIN_SAMPLE_RATE = 8000;
 export const MAX_SAMPLE_RATE = 96000;
+export const MAX_ENGINE_EDITS = 100;
 
 export function validateClip(clip: AudioClip): void {
   if (
@@ -20,12 +21,14 @@ export function validateClip(clip: AudioClip): void {
     clip.sampleRate < MIN_SAMPLE_RATE ||
     clip.sampleRate > MAX_SAMPLE_RATE
   ) {
-    throw new Error('Audio sample rate must be between 8,000 and 96,000 Hz.');
+    throw new Error(
+      `Audio sample rate must be between ${MIN_SAMPLE_RATE.toLocaleString('en-US')} and ${MAX_SAMPLE_RATE.toLocaleString('en-US')} Hz.`,
+    );
   }
   const length = clip.channels[0]?.length;
   if (!length) throw new Error('This audio file contains no samples.');
   if (length / clip.sampleRate > MAX_DURATION)
-    throw new Error('Choose an audio clip of 60 seconds or less.');
+    throw new Error(`Choose an audio clip of ${MAX_DURATION} seconds or less.`);
   for (const channel of clip.channels) {
     if (!(channel instanceof Float32Array) || channel.length !== length)
       throw new Error('Audio channels must contain the same number of samples.');
@@ -36,8 +39,8 @@ export function validateClip(clip: AudioClip): void {
 }
 
 function validateEdits(clip: AudioClip, edits: SpectralEdit[]): void {
-  if (!Array.isArray(edits) || edits.length > 100)
-    throw new Error('An edit recipe can contain at most 100 edits.');
+  if (!Array.isArray(edits) || edits.length > MAX_ENGINE_EDITS)
+    throw new Error(`An edit recipe can contain at most ${MAX_ENGINE_EDITS} edits.`);
   const duration = clip.channels[0].length / clip.sampleRate;
   for (const edit of edits) {
     if (

@@ -11,6 +11,7 @@ export const DEMOS: Demo[] = [
     subtitle: 'A melody. An unwelcome whistle.',
     description:
       'Original generated example: a soft, stereo synth phrase with a 3.2 kHz whistle. Reduce the thin bright line to hear the melody underneath.',
+    targetLabel: 'Find the whistle',
     target: { startTime: 0, endTime: DURATION, lowHz: 2900, highHz: 3450 },
   },
   {
@@ -19,14 +20,16 @@ export const DEMOS: Demo[] = [
     subtitle: 'Find the hum below the rhythm.',
     description:
       'Original generated example: a drum-machine groove with a constant 120 Hz hum. Reduce the low band while leaving the percussion above it.',
+    targetLabel: 'Find the hum',
     target: { startTime: 0, endTime: DURATION, lowHz: 92, highHz: 150 },
   },
   {
     id: 'drift',
     name: 'Passing signal',
-    subtitle: 'A signal cuts through the atmosphere.',
+    subtitle: 'Ambient chords. A chirp cuts in.',
     description:
       'Original generated example: a slow ambient chord interrupted by rising electronic chirps. Select the high-frequency sweep to soften it or isolate it.',
+    targetLabel: 'Find the sweep',
     target: { startTime: 3.6, endTime: 8.4, lowHz: 3500, highHz: 8500 },
   },
 ];

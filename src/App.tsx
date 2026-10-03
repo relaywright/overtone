@@ -39,6 +39,8 @@ import { Waveform } from './components/Waveform';
 import { InfoDialog } from './components/InfoDialog';
 import { usePlayback } from './usePlayback';
 import { inspectDuration } from './importAudio';
+import { FFT_SIZE, HOP_SIZE } from './audio/stft';
+import { MAX_DURATION, MAX_EDITS, MAX_FILE_MB, SOURCE_URL } from './config';
 
 const fmtHz = (hz: number) => (hz >= 1000 ? `${(hz / 1000).toFixed(1)}k` : `${Math.round(hz)}`);
 const fmtTime = (seconds: number) =>
@@ -128,7 +130,7 @@ export default function App() {
       }
       if (data.type === 'loaded') {
         setOriginal(data.analysis);
-        setNotice('Ready. Press Play to explore.');
+        setNotice('Ready. Press Play to listen.');
       }
       if (data.type === 'processed' && clipRef.current) {
         committedEdits.current = pendingEdits.current;
@@ -138,7 +140,7 @@ export default function App() {
           analysis: data.result.analysis,
         });
         setView('edited');
-        setNotice('Edit ready. Compare Original and Edited.');
+        setNotice('Edit ready. Press Play, then compare Original and Edited.');
       }
     };
     instance.onerror = () => {
@@ -226,14 +228,14 @@ export default function App() {
   }, [about, busy, original, playback.toggle, undo, redo]);
 
   function applyEdit(kind: SpectralEdit['kind']) {
-    if (!selection || busy || edits.length >= 12) return;
-    const resolution = (clip?.sampleRate ?? 24000) / 2048;
+    if (!selection || busy || edits.length >= MAX_EDITS) return;
+    const resolution = (clip?.sampleRate ?? 24000) / FFT_SIZE;
     if (
       selection.highHz - selection.lowHz < resolution * 2 ||
-      selection.endTime - selection.startTime < 2048 / (clip?.sampleRate ?? 24000)
+      selection.endTime - selection.startTime < FFT_SIZE / (clip?.sampleRate ?? 24000)
     ) {
       setError(
-        `Widen the selection to at least ${Math.ceil(resolution * 2)} Hz and ${(2048 / (clip?.sampleRate ?? 24000)).toFixed(2)} seconds so the editor can resolve that sound.`,
+        `Widen the selection to at least ${Math.ceil(resolution * 2)} Hz and ${(FFT_SIZE / (clip?.sampleRate ?? 24000)).toFixed(2)} seconds so the editor can resolve that sound.`,
       );
       return;
     }
@@ -271,9 +273,11 @@ export default function App() {
   async function importFile(file?: File) {
     if (!file || workerFailed || !playback.supported) return;
     const ticket = ++importId.current;
-    if (file.size > 30 * 1024 * 1024) {
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
       setDecoding(false);
-      setError('That file is larger than 30 MB. Choose a shorter or smaller audio clip.');
+      setError(
+        `That file is larger than ${MAX_FILE_MB} MB. Choose a shorter or smaller audio clip.`,
+      );
       setNotice('Your current clip is still available.');
       if (fileInput.current) fileInput.current.value = '';
       return;
@@ -288,8 +292,8 @@ export default function App() {
       const context = playback.getContext();
       const audio = await context.decodeAudioData(await file.arrayBuffer());
       if (ticket !== importId.current) return;
-      if (audio.duration > 60 || audio.duration < 0.1)
-        throw new Error('Choose a clip between 0.1 and 60 seconds long.');
+      if (audio.duration > MAX_DURATION || audio.duration < 0.1)
+        throw new Error(`Choose a clip between 0.1 and ${MAX_DURATION} seconds long.`);
       if (audio.numberOfChannels > 2)
         throw new Error('Choose mono or stereo audio. Multichannel files are not supported.');
       loadClip(
@@ -341,8 +345,8 @@ export default function App() {
           demo: demoId,
           edits,
           processing: {
-            fftSize: 2048,
-            hopSize: 512,
+            fftSize: FFT_SIZE,
+            hopSize: HOP_SIZE,
             window: 'periodic Hann',
             output: '16-bit PCM WAV',
           },
@@ -390,7 +394,7 @@ export default function App() {
           <a
             className="source-link"
             aria-label="View source on GitHub"
-            href="https://github.com/relaywright/overtone"
+            href={SOURCE_URL}
             target="_blank"
             rel="noreferrer"
           >
@@ -412,19 +416,18 @@ export default function App() {
           </div>
           <div className="intro-aside">
             <p>
-              A different way into audio.
-              <br />
-              Find a frequency. Make room for the sound you want.
+              Take a hum, whistle or beep out of a short recording. Spot it in the picture of the
+              sound, draw a box around it, and turn it down. Then compare before and after.
             </p>
             <span className="privacy-note">
-              <LockKeyhole size={13} /> On your device. Always.
+              <LockKeyhole size={13} /> Runs on your device. Nothing is uploaded.
             </span>
           </div>
         </section>
         <section className="examples" aria-label="Choose an example">
           <div className="examples-label">
-            <span className="eyebrow">START EXPLORING</span>
-            <span>Three sounds. New possibilities.</span>
+            <span className="eyebrow">TRY AN EXAMPLE</span>
+            <span>Each one hides a sound to remove.</span>
           </div>
           <div className="example-options">
             {DEMOS.map((demo, index) => (
@@ -593,7 +596,7 @@ export default function App() {
               </div>
               <div className="spectrum-footer">
                 <span>
-                  <Crosshair size={13} /> Drag across the light to select sound
+                  <Crosshair size={13} /> Drag a box around a bright shape to select that sound
                 </span>
               </div>
               <div className="waveform-row">
@@ -685,21 +688,18 @@ export default function App() {
                 <span className="tiny-dot" />
               </div>
               <h2>
-                A little less noise.
-                <br />A little more music.
+                Pick a sound.
+                <br />
+                Turn it down.
               </h2>
               <p className="inspector-copy">
                 {activeDemo?.description ??
-                  'Find a sound in your recording. Select its time and pitch, then decide what stays.'}
+                  'Look for the sound you want to change. A steady hum or whistle is a bright horizontal line; a click or knock is a thin vertical mark. Drag a box around it.'}
               </p>
               {activeDemo && (
                 <button className="target-button" onClick={findTarget} disabled={busy}>
                   <Crosshair size={16} />
-                  {demoId === 'melody'
-                    ? 'Find the whistle'
-                    : demoId === 'pulse'
-                      ? 'Find the hum'
-                      : 'Find the sweep'}
+                  {activeDemo.targetLabel}
                   <ArrowRight size={16} />
                 </button>
               )}
@@ -730,14 +730,16 @@ export default function App() {
                       </>
                     ) : (
                       <>
-                        <strong>Give a sound your attention.</strong>
-                        <small>Drag on the spectrum or use precise selection.</small>
+                        <strong>Draw a box around a sound.</strong>
+                        <small>
+                          Drag on the spectrogram, or open Precise selection to type exact values.
+                        </small>
                       </>
                     )}
                   </span>
                 </div>
                 <div className="section-label">
-                  <span>02 / SHAPE THE SOUND</span>
+                  <span>02 / STRENGTH</span>
                   <strong>{reduction} dB</strong>
                 </div>
                 <label className="reduction-range">
@@ -757,26 +759,27 @@ export default function App() {
                 </label>
                 <button
                   className="button primary-button"
-                  disabled={!selection || busy || edits.length >= 12}
+                  disabled={!selection || busy || edits.length >= MAX_EDITS}
                   onClick={() => applyEdit('reduce')}
                 >
                   <AudioLines size={17} /> Reduce selection <ArrowRight size={16} />
                 </button>
                 <button
                   className="button isolate-button"
-                  disabled={!selection || busy || edits.length >= 12}
+                  disabled={!selection || busy || edits.length >= MAX_EDITS}
                   onClick={() => applyEdit('isolate')}
                 >
                   <Headphones size={16} /> Isolate selection
                 </button>
                 <p className="edit-hint">
-                  Reduce turns the selected sound down.
+                  Reduce turns the box down by the amount above, fading at its edges.
                   <br />
-                  Isolate keeps only that region.
+                  Isolate does the opposite: it keeps the box and turns everything else down by up
+                  to 60 dB.
                 </p>
-                {edits.length >= 12 && (
+                {edits.length >= MAX_EDITS && (
                   <p className="limit-note">
-                    12-edit limit reached. Undo or reset to try another direction.
+                    {MAX_EDITS}-edit limit reached. Undo or reset to try another direction.
                   </p>
                 )}
               </div>
@@ -863,7 +866,10 @@ export default function App() {
         <section className="export-row" aria-label="Export your sound">
           <div>
             <span className="eyebrow">TAKE IT WITH YOU</span>
-            <p>Your edits. Your audio. No account required.</p>
+            <p>
+              Export WAV saves the edited sound. The recipe is a small text file listing your edits,
+              not the audio.
+            </p>
             {(edited?.analysis.stats.peak ?? original?.stats.peak ?? 0) > 1 && (
               <p className="limit-note">
                 Some samples exceed full scale and will clip in the WAV export. Undo a strong edit
@@ -893,20 +899,22 @@ export default function App() {
           <div>
             <span className="step-index">01</span>
             <p>
-              <strong>Look for a shape.</strong> Steady tones draw lines. Short sounds leave marks.
+              <strong>Find it.</strong> Steady tones like a hum or whistle draw horizontal lines.
+              Clicks and knocks draw vertical marks.
             </p>
           </div>
           <div>
             <span className="step-index">02</span>
             <p>
-              <strong>Change only what matters.</strong> Work on a small piece of time and
-              frequency.
+              <strong>Box it and reduce it.</strong> Drag a tight box around just that shape, then
+              press Reduce selection.
             </p>
           </div>
           <div>
             <span className="step-index">03</span>
             <p>
-              <strong>Trust your ears.</strong> Compare Original and Edited. Undo is always there.
+              <strong>Compare.</strong> Press Play, then switch between Original and Edited. Undo is
+              always there.
             </p>
           </div>
         </section>
@@ -916,14 +924,14 @@ export default function App() {
           OVERTONE <span className="footer-divider">/</span> An experiment in listening.
         </span>
         <span>
-          Created by{' '}
+          Built by{' '}
           <a href="https://github.com/relaywright" target="_blank" rel="noreferrer">
             relaywright
           </a>{' '}
           with AI.
         </span>
         <button className="text-button" onClick={() => setAbout(true)}>
-          The craft behind the sound <ArrowRight size={14} />
+          How the processing works <ArrowRight size={14} />
         </button>
       </footer>
       <InfoDialog open={about} onClose={() => setAbout(false)} />
@@ -931,7 +939,9 @@ export default function App() {
         <div className="drop-overlay">
           <Upload size={40} />
           <h2>Drop a sound. Look inside.</h2>
-          <p>Up to 60 seconds · 30 MB · mono or stereo</p>
+          <p>
+            Up to {MAX_DURATION} seconds · {MAX_FILE_MB} MB · mono or stereo
+          </p>
         </div>
       )}
     </div>

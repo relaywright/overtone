@@ -1,16 +1,14 @@
 # OVERTONE
 
-**See sound. Shape what you hear.**
+**Take a hum, whistle or beep out of a short recording, right in your browser.**
 
-A spectral sound studio that runs entirely in your browser. Draw a region on a sound's spectrogram, reduce or isolate it, and hear your edit against the original. Import a short recording or start with one of three original synthesized examples.
+OVERTONE shows your audio as a spectrogram: a picture where time runs left to right, pitch runs bottom to top, and louder sounds glow brighter. Unwanted sounds show up as distinct shapes. A hum is a bright line along the bottom, a whistle is a thin line higher up, and a click is a short vertical mark. Draw a box around the shape, turn it down, and switch between the original and your edit to hear the difference. Your audio is never uploaded.
 
-[Open the studio](https://relaywright.github.io/overtone/) · [How the processing works](docs/methodology.md) · [Research and references](docs/research.md)
+[**Open the studio**](https://relaywright.github.io/overtone/) · [User guide](docs/guide.md) · [Customize it](docs/customizing.md) · [How the processing works](docs/methodology.md)
 
 [![Verify and publish OVERTONE](https://github.com/relaywright/overtone/actions/workflows/deploy.yml/badge.svg)](https://github.com/relaywright/overtone/actions/workflows/deploy.yml)
 
-![OVERTONE showing a real spectral edit and its non-destructive history](docs/media/studio-edited.png)
-
-Under the surface: a custom radix-2 FFT, normalized overlap-add reconstruction, and a background worker that renders real audio before redrawing the spectrum. Tests measure the exported signal, including frequency attenuation and exact undo restoration. [Explore the architecture](docs/architecture.md) · [Release verification](docs/verification.md).
+![OVERTONE after reducing a whistle: the bright line is gone from the spectrogram and the edit appears in the history](docs/media/studio-edited.png)
 
 <details>
 <summary>Full desktop and phone views</summary>
@@ -21,51 +19,83 @@ Under the surface: a custom radix-2 FFT, normalized overlap-add reconstruction, 
 
 </details>
 
+## What it's for
+
+OVERTONE works best on one distinct sound that you can see as its own shape.
+
+| You want to…                                        | What it looks like                                         | What to do                                                         |
+| --------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| Remove an electrical hum from a voice memo or video | A bright, steady line near the bottom (50 or 60 Hz and up) | Box a thin band around the line across the whole clip, then Reduce |
+| Remove a whistle, beep or feedback whine            | A thin, bright horizontal line higher up                   | Box tightly around the line, then Reduce                           |
+| Soften one click, knock or squeak                   | A short vertical mark or small blob                        | Box just that moment, then Reduce                                  |
+| Hear a bird call or chirp on its own                | A separate shape in a quieter area                         | Box the shape, then Isolate                                        |
+| Learn what a sound is made of                       | Every note, beat and overtone, drawn as light              | Play an example and watch the playhead                             |
+
+It is a good fit for podcasters and video makers with a short problem clip, students learning how frequency works, and developers curious about real signal processing running in a browser.
+
+## What it isn't
+
+- **Not an AI noise remover.** It changes the region you draw, with softly faded edges, using plain math. It doesn't guess what a sound is.
+- **Not general cleanup.** Broad hiss, wind, crowd noise or anything that overlaps a voice in both time and pitch can't be pulled apart: both sounds change together.
+- **Not a full audio editor.** There's no cutting, trimming, mixing or multitrack work.
+- **Short clips only:** up to 60 seconds, 30 MB, mono or stereo.
+
 ## Try it in thirty seconds
 
-1. Press **Play** to hear the default example.
-2. Choose **Find the whistle** to select the narrow tone visible in the spectrogram.
-3. Choose **Reduce selection**, then switch between **Original** and **Edited** while listening.
-4. Drag another region or adjust its time and frequency boundaries. Export your edited sound with **Export WAV**.
+1. Open the studio and press **Play**. The first example, _Glasshouse_, is a melody with an annoying whistle on top.
+2. Press **Find the whistle**. A box appears around the thin bright line at about 3.2 kHz.
+3. Press **Reduce selection**. The line fades from the picture.
+4. Press **Play** again (applying an edit pauses playback), then switch between **Original** and **Edited** to hear the whistle come and go.
+5. Press **Export WAV** to save the result.
 
-All three demos are generated examples, not field recordings. The spectrogram and waveform are calculated from the audio you hear.
+The other two examples work the same way: _Night circuit_ hides a 120 Hz hum under a drum groove, and _Passing signal_ has a chirp sweeping through ambient chords. All three are generated by code, not field recordings.
 
-## What it does
+## Use your own recording
 
-- Local audio import with browser-supported decoding. No account, server processing, API key, or audio upload.
-- A logarithmic frequency display with pointer selection and equivalent labeled numeric controls.
-- Feathered time/frequency masks for attenuation and isolation.
-- Non-destructive edits, undo, redo, reset, and synchronized original/edited comparison.
-- Playback, seeking, looping, and output volume.
-- Stereo-preserving 16-bit PCM WAV export and a downloadable JSON edit recipe.
-- Audio processing in a Web Worker, separate from the interface thread.
-- Responsive layout, keyboard controls, and reduced-motion support.
+1. Press **Import audio**, or drag a file onto the page. Uncompressed WAV is the most widely supported; MP3, OGG, FLAC and M4A depend on your browser.
+2. Press **Play** and watch for a shape that matches the sound you want gone.
+3. Drag a box around it. Keep the box tight: everything inside it changes.
+4. Set the strength with the slider (−3 dB is subtle, −60 dB is nearly silent), then press **Reduce selection**. Or press **Isolate selection** to keep only the box.
+5. Press **Play** and switch between **Original** and **Edited**. Undo, redo or reset at any time. Your original is never changed.
+6. Press **Export WAV** to download the edited sound.
 
-This is an instrument for short clips and deliberate edits. It does not identify speakers, separate instruments, or recover missing audio. Sounds occupying the same time and frequency are affected together. [Read the limitations](docs/methodology.md#limits-and-tradeoffs).
+**Download recipe** saves a small text file listing your edits (box positions and strengths), not the audio. It's useful for sharing exactly what you did.
 
-## Run locally
+The [user guide](docs/guide.md) covers reading the picture, step-by-step recipes for common problems, keyboard shortcuts and what each error message means.
 
-Use Node.js 24 and npm. These commands work in PowerShell, macOS, and Linux shells.
+## Customize it
+
+OVERTONE is a small static site you can fork and change. The [customization guide](docs/customizing.md) explains how to:
+
+- add your own example sounds,
+- change the file size, length and edit limits,
+- adjust the processing resolution and edge softening,
+- restyle the colors, fonts and spectrogram palette,
+- deploy it to your own GitHub Pages, Cloudflare Pages or any static host.
+
+## Run it locally
+
+You need [Node.js 24](https://nodejs.org/) and npm. These commands work in PowerShell, macOS and Linux shells.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open [localhost:4186/overtone/](http://localhost:4186/overtone/). There are no environment variables or credentials to configure. Fonts are bundled with the application.
+Then open [localhost:4186/overtone/](http://localhost:4186/overtone/). There are no environment variables, accounts or API keys. Fonts are bundled.
 
-## Verify a change
+## Check a change
 
 ```sh
-npm test
-npm run build
+npm test                       # signal-processing unit tests
+npm run build                  # type check and production build
 npx playwright install chromium
-npm run test:e2e
+npm run test:e2e               # browser tests against the production build
 ```
 
-The browser tests start a preview of the production build on port 4186. They cover desktop and mobile-sized Chromium, audio import, editing and history, comparison playback, downloads, keyboard access, overflow, and automated accessibility checks. Unit tests exercise the signal-processing engine and WAV encoding. Automated accessibility checks supplement manual review; they do not establish universal accessibility or audio quality.
+Unit tests measure the processed audio itself: perfect reconstruction with no edits, how much a selected tone actually drops, that an edit leaves audio well away from its time range alone, and that channel count and length never change. Browser tests run desktop and phone-sized Chromium through importing, editing, undo, comparison playback, downloads, keyboard use and automated accessibility checks. Automated accessibility checks support manual review; they don't prove universal accessibility.
 
-To test an already hosted build in PowerShell:
+To run the browser tests against the live site in PowerShell:
 
 ```powershell
 $env:PLAYWRIGHT_BASE_URL = 'https://relaywright.github.io/overtone/'
@@ -73,24 +103,25 @@ npm run test:e2e
 Remove-Item Env:PLAYWRIGHT_BASE_URL
 ```
 
-## Inside the project
+## How it's built
 
-| Area                   | Responsibility                                                                                   |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
-| `src/audio/`           | FFT, spectral analysis and editing, synthesized examples, WAV encoding, and worker communication |
-| `src/components/`      | Interactive sound visualizations                                                                 |
-| `src/App.tsx`          | Studio state, playback, file handling, and controls                                              |
-| `tests/studio.spec.ts` | Browser journeys and accessibility checks                                                        |
-| `docs/methodology.md`  | Processing contract, mathematics, and limitations                                                |
+| Area                  | What lives there                                                                                                                                                                                                 |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/audio/`          | FFT, spectral editing, example sound synthesis, WAV encoding and worker messages                                                                                                                                 |
+| `src/audio.worker.ts` | Runs processing in the background so the page stays responsive                                                                                                                                                   |
+| `src/components/`     | The spectrogram, waveform and explanation dialog                                                                                                                                                                 |
+| `src/App.tsx`         | Studio state, file import, playback, controls and limits                                                                                                                                                         |
+| `tests/`              | Browser journeys, selection accuracy, transport, failure recovery and accessibility                                                                                                                              |
+| `docs/`               | [Guide](docs/guide.md), [customizing](docs/customizing.md), [methodology](docs/methodology.md), [architecture](docs/architecture.md), [research](docs/research.md), [release verification](docs/verification.md) |
 
-The core edit path is deterministic: decoded samples and a list of region edits produce the rendered samples. Each render starts from the original. No model or remote service participates in audio processing.
+Every edit re-renders from the original audio: the decoded samples plus your list of boxes produce the output, the same way every time. A custom FFT splits the sound into overlapping slices, soft-edged masks turn the selected frequencies down, and overlap-add rebuilds the audio. The spectrogram you see afterward is recalculated from that rebuilt audio, so the picture always matches what you hear. No AI model or remote service touches your audio. [Read the full method](docs/methodology.md).
 
 ## Deployment
 
-The repository's GitHub Actions workflow tests and builds each pull request. A successful push to `main` also publishes `dist/` to GitHub Pages. In the repository settings, select **Pages → Build and deployment → GitHub Actions**. The Vite base path is `/overtone/`; change it if deploying under a different repository name or path.
+The GitHub Actions workflow tests and builds every pull request. A successful push to `main` also publishes `dist/` to GitHub Pages. In a fork, go to **Settings → Pages → Build and deployment** and choose **GitHub Actions**. The site is served from `/overtone/`; see [deploying elsewhere](docs/customizing.md#deploy-it-somewhere-else) to change that.
 
-## License and attribution
+## License
 
-OVERTONE's original code and synthesized demos are available under the [MIT license](LICENSE). Fonts and dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md). Imported recordings remain yours and are held in browser memory for the session.
+OVERTONE's code and generated example sounds are available under the [MIT license](LICENSE). Fonts and dependencies keep their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md). Recordings you import stay yours and live only in browser memory for the session.
 
-Built with AI-assisted development. The implementation, methodology, tests, and deployment workflow are public so the result can be inspected and reproduced.
+Built by [relaywright](https://github.com/relaywright) with AI-assisted development. The code, method, tests and deployment workflow are all public so you can inspect and reproduce the results.

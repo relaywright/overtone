@@ -1,3 +1,5 @@
+import { MAX_DURATION } from './config';
+
 /** Read only media metadata before allocating a decoded PCM buffer. */
 export function inspectDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -22,8 +24,8 @@ export function inspectDuration(file: File): Promise<number> {
     media.preload = 'metadata';
     media.onloadedmetadata = () => {
       const duration = media.duration;
-      if (!Number.isFinite(duration) || duration < 0.1 || duration > 60) {
-        fail('Choose a clip between 0.1 and 60 seconds long.');
+      if (!Number.isFinite(duration) || duration < 0.1 || duration > MAX_DURATION) {
+        fail(`Choose a clip between 0.1 and ${MAX_DURATION} seconds long.`);
         return;
       }
       clean();

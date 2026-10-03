@@ -1183,6 +1183,11 @@ dialog::backdrop {
   font-size: 10px;
   color: #a9bb98;
 }
+.dialog-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
 .dialog-footer a {
   display: flex;
   gap: 5px;
