@@ -13,9 +13,12 @@ interface WaveformProps {
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 function describeTime(time: number) {
-  const minutes = Math.floor(time / 60);
-  const seconds = (time % 60).toFixed(1);
-  return minutes ? `${minutes} minutes, ${seconds} seconds` : `${seconds} seconds`;
+  // Round before splitting so 59.96 s is "1 minute, 0.0 seconds", never "60.0 seconds".
+  const tenths = Math.round(time * 10);
+  const minutes = Math.floor(tenths / 600);
+  const seconds = ((tenths % 600) / 10).toFixed(1);
+  if (!minutes) return `${seconds} seconds`;
+  return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}, ${seconds} seconds`;
 }
 
 export function Waveform({ values, duration, playhead, onSeek, disabled = false }: WaveformProps) {

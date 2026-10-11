@@ -44,10 +44,13 @@ import { FFT_SIZE, HOP_SIZE } from './audio/stft';
 import { MAX_DURATION, MAX_EDITS, MAX_FILE_MB, SOURCE_URL } from './config';
 
 const fmtHz = (hz: number) => (hz >= 1000 ? `${(hz / 1000).toFixed(1)}k` : `${Math.round(hz)}`);
-const fmtTime = (seconds: number) =>
-  `${Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, '0')}:${(seconds % 60).toFixed(2).padStart(5, '0')}`;
+// Round once, before splitting, so 59.996 s reads 01:00.00 rather than 00:60.00.
+const fmtTime = (seconds: number) => {
+  const hundredths = Math.round(seconds * 100);
+  return `${String(Math.floor(hundredths / 6000)).padStart(2, '0')}:${((hundredths % 6000) / 100)
+    .toFixed(2)
+    .padStart(5, '0')}`;
+};
 const db = (value: number) => (value > 0 ? `${(20 * Math.log10(value)).toFixed(1)}` : '−∞');
 function download(data: BlobPart, type: string, name: string) {
   const url = URL.createObjectURL(new Blob([data], { type }));
