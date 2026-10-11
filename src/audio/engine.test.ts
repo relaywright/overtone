@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { analyzeClip, processClip, validateClip } from './engine';
 import { createDemo, DEMOS } from './demos';
 import { fft } from './fft';
-import { transformChannels } from './stft';
+import { FFT_SIZE, HANN, HOP_SIZE, transformChannels } from './stft';
 import { encodeWav } from './wav';
 import type { AudioClip, SpectralEdit } from './types';
 
@@ -160,6 +160,109 @@ describe('spectral processing', () => {
     expect(
       20 * Math.log10(amplitude(result.channels[0], 1500) / amplitude(input, 1500)),
     ).toBeCloseTo(-30, 1);
+  });
+  it('scales untouched frames directly with the same result as transforming every frame', () => {
+    // Reference: the plain algorithm, which runs the forward and inverse FFT on every
+    // frame. The engine skips both when a frame's gain is the same in every bin.
+    function transformEveryFrame(channels: Float32Array[], edits: SpectralEdit[]) {
+      const length = channels[0].length;
+      const duration = length / sampleRate;
+      const smooth = (v: number) => 0.5 - 0.5 * Math.cos(Math.PI * Math.max(0, Math.min(1, v)));
+      const weight = (
+        v: number,
+        lo: number,
+        hi: number,
+        f: number,
+        openLo: boolean,
+        openHi: boolean,
+      ) =>
+        v < lo || v > hi
+          ? 0
+          : Math.min(openLo ? 1 : smooth((v - lo) / f), openHi ? 1 : smooth((hi - v) / f));
+      const sums = channels.map(() => new Float64Array(length));
+      const norm = new Float64Array(length);
+      for (let start = -FFT_SIZE + HOP_SIZE; start < length; start += HOP_SIZE) {
+        const time = Math.max(0, Math.min(duration, (start + FFT_SIZE / 2) / sampleRate));
+        const gains = Float64Array.from({ length: FFT_SIZE / 2 + 1 }, (_, bin) =>
+          edits.reduce((product, edit) => {
+            const gain = 10 ** (edit.gainDb / 20);
+            const span = edit.endTime - edit.startTime;
+            const selected =
+              weight(
+                time,
+                edit.startTime,
+                edit.endTime,
+                Math.min(0.04, span / 4),
+                edit.startTime <= 0,
+                edit.endTime >= duration,
+              ) *
+              weight(
+                (bin * sampleRate) / FFT_SIZE,
+                edit.lowHz,
+                edit.highHz,
+                Math.min(80, (edit.highHz - edit.lowHz) / 4),
+                edit.lowHz <= 0,
+                edit.highHz >= sampleRate / 2,
+              );
+            return (
+              product *
+              (edit.kind === 'reduce' ? 1 + (gain - 1) * selected : gain + (1 - gain) * selected)
+            );
+          }, 1),
+        );
+        for (let i = 0; i < FFT_SIZE; i++)
+          if (start + i >= 0 && start + i < length) norm[start + i] += HANN[i] ** 2;
+        channels.forEach((input, channel) => {
+          const real = new Float64Array(FFT_SIZE);
+          const imaginary = new Float64Array(FFT_SIZE);
+          for (let i = 0; i < FFT_SIZE; i++)
+            if (start + i >= 0 && start + i < length) real[i] = input[start + i] * HANN[i];
+          fft(real, imaginary);
+          for (let bin = 0; bin < FFT_SIZE; bin++) {
+            const gain = gains[Math.min(bin, FFT_SIZE - bin)];
+            real[bin] *= gain;
+            imaginary[bin] *= gain;
+          }
+          fft(real, imaginary, true);
+          for (let i = 0; i < FFT_SIZE; i++)
+            if (start + i >= 0 && start + i < length) sums[channel][start + i] += real[i] * HANN[i];
+        });
+      }
+      return sums.map((sum) => Float32Array.from(sum, (value, i) => value / norm[i]));
+    }
+    const left = combine(tone(1500, 3), tone(375, 3), tone(5200, 3, 0.1));
+    const right = combine(tone(2600, 3), tone(90, 3, 0.4));
+    const edits: SpectralEdit[] = [
+      { ...reduction, startTime: 0, endTime: 0.6 },
+      {
+        ...reduction,
+        id: 'mid',
+        startTime: 1.1,
+        endTime: 1.4,
+        lowHz: 2400,
+        highHz: 2800,
+        gainDb: -48,
+      },
+      {
+        ...reduction,
+        id: 'iso',
+        kind: 'isolate',
+        startTime: 2,
+        endTime: 3,
+        lowHz: 0,
+        highHz: 2000,
+        gainDb: -60,
+      },
+    ];
+    const fast = transformChannels([left, right], sampleRate, edits);
+    const reference = transformEveryFrame([left, right], edits);
+    for (let channel = 0; channel < 2; channel++) {
+      expect(fast[channel]).toHaveLength(left.length);
+      let error = 0;
+      for (let i = 0; i < left.length; i++)
+        error = Math.max(error, Math.abs(fast[channel][i] - reference[channel][i]));
+      expect(error).toBeLessThan(1e-6);
+    }
   });
   it('uses smooth time edges without an abrupt discontinuity', () => {
     const input = tone(1500, 2);

@@ -29,6 +29,8 @@ The output is normalized at every sample by the overlapping squared window weigh
 output[n] = sum(inverse_frame[n] × w[n]) / sum(w[n]²)
 ```
 
+When a frame's gain is the same at every frequency, as it is outside every reduction or outside an isolated region, the edit is a plain volume change. The transform is linear, so the engine scales that windowed frame directly instead of running the forward and inverse FFT. The result is the same; a unit test compares it with transforming every frame. A short edit on a 60-second clip therefore costs little more than the frames it touches.
+
 Padding ensures the first and final input samples have window coverage. The padded output is trimmed to the original sample count. Without edits, this arrangement reconstructs the input to floating-point precision. This is normalized weighted overlap-add, following the inverse-STFT formulation documented by [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.istft.html) and the windowing principles explained in [Julius O. Smith's spectral audio text](https://www.dsprelated.com/freebooks/sasp/Weighted_Overlap_Add.html).
 
 At 48 kHz, frequency bins are approximately **23.44 Hz** apart, frames span **42.67 ms**, and successive frames begin **10.67 ms** apart. A rectangle's numeric boundaries are therefore more precise than the transform's ability to separate nearby sounds. The studio asks you to widen selections smaller than two frequency bins or one analysis window before applying an edit, rather than reporting an inaudible no-op as a successful operation.

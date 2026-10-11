@@ -67,6 +67,8 @@ export function transformChannels(
         edit.startTime <= 0,
         edit.endTime >= duration,
       );
+      // Outside its time range a reduction multiplies every bin by exactly 1.
+      if (timeWeight === 0 && edit.kind === 'reduce') continue;
       for (let bin = 0; bin < gains.length; bin++) {
         const selected = timeWeight * frequencyWeights[bin];
         gains[bin] *=
@@ -76,6 +78,21 @@ export function transformChannels(
     const first = Math.max(0, -start);
     const last = Math.min(FFT_SIZE, length - start);
     for (let i = first; i < last; i++) weights[start + i] += HANN[i] * HANN[i];
+    // A gain that is the same in every bin is a plain volume change. The transform is
+    // linear, so the frame is scaled directly: this skips both FFTs for frames outside a
+    // reduction (gain 1) or outside an isolated region (gain = isolation floor).
+    let uniform = true;
+    for (let bin = 1; bin < gains.length && uniform; bin++) uniform = gains[bin] === gains[0];
+    if (uniform) {
+      const gain = gains[0];
+      for (let channel = 0; channel < channels.length; channel++) {
+        const input = channels[channel];
+        const output = accumulators[channel];
+        for (let i = first; i < last; i++)
+          output[start + i] += gain * input[start + i] * HANN[i] * HANN[i];
+      }
+      continue;
+    }
     for (let channel = 0; channel < channels.length; channel++) {
       real.fill(0);
       imaginary.fill(0);
@@ -96,7 +113,10 @@ export function transformChannels(
       for (let i = first; i < last; i++) output[start + i] += real[i] * HANN[i];
     }
   }
-  return accumulators.map((channel) =>
-    Float32Array.from(channel, (sample, index) => sample / weights[index]),
-  );
+  // A plain loop: Float32Array.from with a map callback is over ten times slower here.
+  return accumulators.map((channel) => {
+    const output = new Float32Array(length);
+    for (let i = 0; i < length; i++) output[i] = channel[i] / weights[i];
+    return output;
+  });
 }
