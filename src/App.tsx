@@ -37,6 +37,7 @@ import { encodeWav } from './audio/wav';
 import { Spectrogram } from './components/Spectrogram';
 import { Waveform } from './components/Waveform';
 import { InfoDialog } from './components/InfoDialog';
+import { PreciseField } from './components/PreciseField';
 import { usePlayback } from './usePlayback';
 import { inspectDuration } from './importAudio';
 import { FFT_SIZE, HOP_SIZE } from './audio/stft';
@@ -251,7 +252,8 @@ export default function App() {
       setSelectionOpen(true);
     }
   }
-  function updateSelection(key: keyof Selection, value: number) {
+  /** Without fitToRange, a value that would have to move to stay valid is left for the user to finish typing. */
+  function updateSelection(key: keyof Selection, value: number, fitToRange: boolean) {
     if (!Number.isFinite(value)) return;
     const next = {
       ...(selection ?? {
@@ -268,7 +270,7 @@ export default function App() {
     if (key === 'lowHz') next.lowHz = Math.max(40, Math.min(next.highHz - 1, value));
     if (key === 'highHz')
       next.highHz = Math.max(next.lowHz + 1, Math.min((clip?.sampleRate ?? 24000) / 2, value));
-    setSelection(next);
+    if (fitToRange || next[key] === value) setSelection(next);
   }
   async function importFile(file?: File) {
     if (!file || workerFailed || !playback.supported) return;
@@ -661,23 +663,18 @@ export default function App() {
                       },
                     ] as const
                   ).map((field) => (
-                    <label key={field.key}>
-                      {field.name}
-                      <div>
-                        <input
-                          type="number"
-                          aria-label={field.name}
-                          min={field.min}
-                          max={field.max}
-                          step={field.step}
-                          disabled={busy}
-                          value={selection ? Math.round(selection[field.key] * 100) / 100 : ''}
-                          placeholder="–"
-                          onChange={(e) => updateSelection(field.key, e.target.valueAsNumber)}
-                        />
-                        <span>{field.unit}</span>
-                      </div>
-                    </label>
+                    <PreciseField
+                      key={field.key}
+                      name={field.name}
+                      unit={field.unit}
+                      min={field.min}
+                      max={field.max}
+                      step={field.step}
+                      disabled={busy}
+                      value={selection ? selection[field.key] : null}
+                      onDraft={(value) => updateSelection(field.key, value, false)}
+                      onCommit={(value) => updateSelection(field.key, value, true)}
+                    />
                   ))}
                 </div>
               )}

@@ -12,7 +12,7 @@ OVERTONE lets you turn down, or keep only, one part of a short recording by draw
 4. **Transport.** Play or pause, the time readout, loop, and listening volume. The volume slider only changes what you hear; it doesn't change the export.
 5. **Spectrogram.** The picture of the sound. Drag on it to draw a selection box.
 6. **Waveform.** The overall loudness over time. Click or drag here to jump to a moment.
-7. **Precise selection.** Opens four number boxes (start time, end time, low frequency, high frequency) so you can type an exact selection instead of dragging.
+7. **Precise selection.** Opens four number boxes (start time, end time, low frequency, high frequency) so you can type an exact selection instead of dragging. The box follows along as you type. When you press <kbd>Enter</kbd> or move to another field, a value outside the allowed range moves to the nearest one that fits.
 8. **Edit panel** (right side, or below on a phone). Shows your selection, sets the strength, and applies **Reduce** or **Isolate**. On an example, a **Find the…** button selects the problem sound for you.
 9. **Edit history.** Every edit you've applied, in order, plus **Reset edits**.
 10. **Export row.** **Export WAV** saves the edited audio. **Download recipe** saves a list of your edits.

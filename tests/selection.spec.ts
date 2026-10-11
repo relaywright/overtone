@@ -198,3 +198,47 @@ test('waveform seeks through its full height and supports native keyboard contro
   await page.keyboard.press('ArrowLeft');
   await expect(slider).toHaveValue('0');
 });
+
+test('precise fields accept values typed one key at a time and fit them into range when finished', async ({
+  page,
+}) => {
+  await openStudio(page);
+  await page.getByRole('button', { name: 'Find the whistle', exact: true }).click();
+  const summary = page.locator('.selection-summary');
+  await expect(summary).toHaveText('0.00–12.00s · 2.9k–3.5k Hz');
+
+  async function type(name: string, text: string) {
+    const field = page.getByLabel(name, { exact: true });
+    await field.click();
+    await field.press('ControlOrMeta+a');
+    await field.pressSequentially(text);
+    return field;
+  }
+
+  // Regression: each keystroke used to be clamped, so typing 5000 became 41 after the
+  // first "5" and finished at the 12 kHz ceiling, and typing 100 finished at 4000.
+  const high = await type('High frequency', '5000');
+  // A value that already fits applies while typing, so the box follows along.
+  await expect(summary).toHaveText('0.00–12.00s · 2.9k–5.0k Hz');
+  await high.press('Tab');
+  await expect(high).toHaveValue('5000');
+
+  const low = await type('Low frequency', '100');
+  await low.press('Enter');
+  await expect(low).toHaveValue('100');
+  const start = await type('Start time', '2.5');
+  await start.press('Tab');
+  await expect(start).toHaveValue('2.5');
+  await expect(summary).toHaveText('2.50–12.00s · 100–5.0k Hz');
+
+  // A finished value outside the range moves to the nearest valid one.
+  const lowAgain = await type('Low frequency', '9000');
+  await lowAgain.press('Enter');
+  await expect(lowAgain).toHaveValue('4999');
+
+  // A cleared field returns to the current value instead of leaving a blank box.
+  const end = await type('End time', '');
+  await end.press('Backspace');
+  await end.press('Tab');
+  await expect(end).toHaveValue('12');
+});
