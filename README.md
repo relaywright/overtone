@@ -59,7 +59,7 @@ The other two examples work the same way: _Night circuit_ hides a 120 Hz hum und
 5. Press **Play** and switch between **Original** and **Edited**. Undo, redo or reset at any time. Your original is never changed.
 6. Press **Export WAV** to download the edited sound.
 
-**Download recipe** saves a small text file listing your edits (box positions and strengths), not the audio. It's useful for sharing exactly what you did.
+**Download recipe** saves a small text file listing your edits (box positions and strengths), not the audio. It's useful for sharing exactly what you did. **Load recipe** reads one back and applies its edits, so you can repeat an edit later or check someone else's. Open the same sound first: on the same sound, the result is the same WAV, byte for byte.
 
 The [user guide](docs/guide.md) covers reading the picture, step-by-step recipes for common problems, keyboard shortcuts and what each error message means.
 
@@ -93,7 +93,7 @@ npx playwright install chromium
 npm run test:e2e               # browser tests against the production build
 ```
 
-Unit tests measure the processed audio itself: perfect reconstruction with no edits, how much a selected tone actually drops, that an edit leaves audio well away from its time range alone, and that channel count and length never change. Browser tests run desktop and phone-sized Chromium through importing, editing, undo, comparison playback, downloads, keyboard use and automated accessibility checks. Automated accessibility checks support manual review; they don't prove universal accessibility.
+Unit tests measure the processed audio itself: perfect reconstruction with no edits, how much a selected tone actually drops, that an edit leaves audio well away from its time range alone, and that channel count and length never change. Browser tests run desktop and phone-sized Chromium through importing, editing, undo, comparison playback, downloads, reloading a recipe to the identical WAV, keyboard use and automated accessibility checks. Automated accessibility checks support manual review; they don't prove universal accessibility.
 
 To run the browser tests against the live site in PowerShell:
 
@@ -107,9 +107,9 @@ Remove-Item Env:PLAYWRIGHT_BASE_URL
 
 | Area                  | What lives there                                                                                                                                                                                                 |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/audio/`          | FFT, spectral editing, example sound synthesis, WAV encoding and worker messages                                                                                                                                 |
+| `src/audio/`          | FFT, spectral editing, example sound synthesis, WAV encoding, edit recipes and worker messages                                                                                                                   |
 | `src/audio.worker.ts` | Runs processing in the background so the page stays responsive                                                                                                                                                   |
-| `src/components/`     | The spectrogram, waveform and explanation dialog                                                                                                                                                                 |
+| `src/components/`     | The spectrogram, waveform, precise selection fields and explanation dialog                                                                                                                                       |
 | `src/App.tsx`         | Studio state, file import, playback, controls and limits                                                                                                                                                         |
 | `tests/`              | Browser journeys, selection accuracy, transport, failure recovery and accessibility                                                                                                                              |
 | `docs/`               | [Guide](docs/guide.md), [customizing](docs/customizing.md), [methodology](docs/methodology.md), [architecture](docs/architecture.md), [research](docs/research.md), [release verification](docs/verification.md) |

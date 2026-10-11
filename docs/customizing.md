@@ -63,7 +63,7 @@ These settings change how the sound is analyzed and rebuilt. Read the [methodolo
 | Strength slider range    | The `reduction-range` input in `src/App.tsx`                | −3 to −60 dB  | The engine accepts 0 to −60 dB. To go further, change the bound in `validateEdits` in `src/audio/engine.ts` too.               |
 | Isolate depth            | `kind === 'isolate' ? -60` in `applyEdit` in `src/App.tsx`  | −60 dB        | How much quieter everything outside an isolated box becomes.                                                                   |
 
-The "widen the selection" check reads `FFT_SIZE`, and the downloaded recipe records both `FFT_SIZE` and `HOP_SIZE`, so they stay in step with your changes. The unit tests check reconstruction and attenuation at the current settings. If you change the transform size or hop, expect to revisit the thresholds in `src/audio/engine.test.ts`, and treat a failing reconstruction test as a real problem rather than a number to loosen.
+The "widen the selection" check reads `FFT_SIZE`, and the downloaded recipe records both `FFT_SIZE` and `HOP_SIZE`, so they stay in step with your changes. A recipe saved with different values still loads, with a warning that the result may not match. The unit tests check reconstruction and attenuation at the current settings. If you change the transform size or hop, expect to revisit the thresholds in `src/audio/engine.test.ts`, and treat a failing reconstruction test as a real problem rather than a number to loosen.
 
 ## Change the look
 

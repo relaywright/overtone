@@ -15,7 +15,7 @@ OVERTONE lets you turn down, or keep only, one part of a short recording by draw
 7. **Precise selection.** Opens four number boxes (start time, end time, low frequency, high frequency) so you can type an exact selection instead of dragging. The box follows along as you type. When you press <kbd>Enter</kbd> or move to another field, a value outside the allowed range moves to the nearest one that fits.
 8. **Edit panel** (right side, or below on a phone). Shows your selection, sets the strength, and applies **Reduce** or **Isolate**. On an example, a **Find the…** button selects the problem sound for you.
 9. **Edit history.** Every edit you've applied, in order, plus **Reset edits**.
-10. **Export row.** **Export WAV** saves the edited audio. **Download recipe** saves a list of your edits.
+10. **Export row.** **Export WAV** saves the edited audio. **Download recipe** saves a list of your edits, and **Load recipe** applies a saved list again.
 11. **Status bar.** What the studio is doing right now, plus the sample rate, mono or stereo, and the loudest peak.
 
 ## Reading the spectrogram
@@ -79,7 +79,8 @@ Try it on _Glasshouse_: press **Find the whistle**.
 ## Saving your work
 
 - **Export WAV** downloads the edited sound as a standard 16-bit WAV file, with the same length, sample rate and number of channels as the decoded original.
-- **Download recipe** downloads `overtone-recipe.json`: the source name, sample rate, length, and every edit's box and strength. It doesn't contain any audio. To reproduce an edit, you need the same original file.
+- **Download recipe** downloads `overtone-recipe.json`: the source name, sample rate, length, and every edit's box and strength. It doesn't contain any audio.
+- **Load recipe** opens a saved recipe and applies its edits to the current sound, replacing any edits you have. Open the same sound first (for an example, choose it; for your own recording, import the same file). On the same sound, the result is identical to the original edit. If the recipe was saved from a different file or sample rate, its edits are still applied when they fit, and the status bar warns that the result may not match. Undo steps back through the loaded edits one at a time.
 - Nothing is saved automatically. Audio and history live in the page's memory, so export before closing or reloading.
 
 ## Keyboard and touch
@@ -106,19 +107,22 @@ On a phone or tablet, drag on the spectrogram with one finger. The layout stacks
 
 ## When something goes wrong
 
-| Message                                         | What it means and what to do                                                                                                                                                                              |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "That file is larger than 30 MB"                | Trim the clip or export it at a lower quality, then import again. Your current sound is still loaded.                                                                                                     |
-| "Choose a clip between 0.1 and 60 seconds long" | The clip is too long or too short, or its length can't be read. Trim it to between 0.1 and 60 seconds, or convert it to WAV if the length looks right.                                                    |
-| "Choose mono or stereo audio"                   | The file has more than two channels. Export a stereo version first.                                                                                                                                       |
-| "This file could not be decoded"                | Your browser can't open that format. Convert it to WAV and try again.                                                                                                                                     |
-| "This browser could not read its duration"      | The file's length information is missing or unreadable. Convert it to WAV and try again.                                                                                                                  |
-| "Widen the selection…"                          | The box is too small to make an audible change. Make it taller, wider, or both.                                                                                                                           |
-| "12-edit limit reached"                         | Undo or reset some edits, or export and re-import the result to keep going.                                                                                                                               |
-| "Some samples exceed full scale…"               | Parts of the sound are louder than a WAV can hold, so they'll distort on export. If an edit caused it, undo that edit. If the imported file was already that loud, lower its volume in another app first. |
-| "This is taking longer than expected"           | The device is struggling with the clip. Try a shorter one, or pick an example to start over.                                                                                                              |
-| "The audio processor stopped"                   | The background processor crashed. Press **Restart studio** to load a fresh example. Unsaved edits are lost.                                                                                               |
-| "Audio could not start"                         | The browser has no working audio output or blocked sound. Check your output device and site sound permission, then press Play again.                                                                      |
+| Message                                            | What it means and what to do                                                                                                                                                                              |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "That file is larger than 30 MB"                   | Trim the clip or export it at a lower quality, then import again. Your current sound is still loaded.                                                                                                     |
+| "Choose a clip between 0.1 and 60 seconds long"    | The clip is too long or too short, or its length can't be read. Trim it to between 0.1 and 60 seconds, or convert it to WAV if the length looks right.                                                    |
+| "Choose mono or stereo audio"                      | The file has more than two channels. Export a stereo version first.                                                                                                                                       |
+| "This file could not be decoded"                   | Your browser can't open that format. Convert it to WAV and try again.                                                                                                                                     |
+| "This browser could not read its duration"         | The file's length information is missing or unreadable. Convert it to WAV and try again.                                                                                                                  |
+| "This file is not an OVERTONE recipe"              | Choose a `.json` file saved with **Download recipe**.                                                                                                                                                     |
+| "This recipe was made for the … example"           | Choose the example it names, then load the recipe again.                                                                                                                                                  |
+| "This recipe's edits do not fit the current sound" | An edit reaches past the end of this sound or above its highest frequency. Import the sound the recipe was made for, then load it again.                                                                  |
+| "Widen the selection…"                             | The box is too small to make an audible change. Make it taller, wider, or both.                                                                                                                           |
+| "12-edit limit reached"                            | Undo or reset some edits, or export and re-import the result to keep going.                                                                                                                               |
+| "Some samples exceed full scale…"                  | Parts of the sound are louder than a WAV can hold, so they'll distort on export. If an edit caused it, undo that edit. If the imported file was already that loud, lower its volume in another app first. |
+| "This is taking longer than expected"              | The device is struggling with the clip. Try a shorter one, or pick an example to start over.                                                                                                              |
+| "The audio processor stopped"                      | The background processor crashed. Press **Restart studio** to load a fresh example. Unsaved edits are lost.                                                                                               |
+| "Audio could not start"                            | The browser has no working audio output or blocked sound. Check your output device and site sound permission, then press Play again.                                                                      |
 
 ## Privacy
 

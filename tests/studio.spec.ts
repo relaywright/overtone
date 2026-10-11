@@ -207,6 +207,69 @@ test('local stereo import exports valid audio with measured frequency attenuatio
   expect(channelRms(isolated.data, 2, 1) / channelRms(original.data, 2, 1)).toBeGreaterThan(0.95);
 });
 
+test('a downloaded recipe reapplies the same edits and reproduces the exact WAV', async ({
+  page,
+}) => {
+  await openStudio(page);
+  const exportButton = page.getByRole('button', { name: 'Export WAV', exact: true });
+  await page.getByRole('button', { name: 'Find the whistle', exact: true }).click();
+  await page.getByRole('button', { name: 'Reduce selection', exact: true }).click();
+  await expect(exportButton).toBeEnabled();
+  await page.getByLabel('Start time', { exact: true }).fill('2');
+  await page.getByLabel('End time', { exact: true }).fill('5');
+  await page.getByLabel('Low frequency', { exact: true }).fill('200');
+  await page.getByLabel('High frequency', { exact: true }).fill('900');
+  await page.getByRole('button', { name: 'Isolate selection', exact: true }).click();
+  await expect(exportButton).toBeEnabled();
+  const edited = await exportWav(page);
+
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download recipe', exact: true }).click();
+  const recipePath = await (await pending).path();
+
+  await page.getByRole('button', { name: 'Reset edits', exact: true }).click();
+  await expect(exportButton).toBeEnabled();
+  await expect(page.getByRole('list', { name: 'Edit history' })).toHaveCount(0);
+  expect((await exportWav(page)).equals(edited)).toBe(false);
+
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Load recipe', exact: true }).click();
+  await (await chooser).setFiles(recipePath);
+  await expect(exportButton).toBeEnabled();
+  await expect(page.locator('.studio-status [role="status"]')).toHaveText(
+    'Recipe loaded: 2 edits applied. Press Play, then compare Original and Edited.',
+  );
+  await expect(page.getByRole('list', { name: 'Edit history' }).getByRole('listitem')).toHaveCount(
+    2,
+  );
+  // The engine is deterministic, so the same recipe on the same sound gives the same file.
+  expect((await exportWav(page)).equals(edited)).toBe(true);
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(exportButton).toBeEnabled();
+  await expect(page.getByRole('list', { name: 'Edit history' }).getByRole('listitem')).toHaveCount(
+    1,
+  );
+
+  const recipeInput = page.getByLabel('Load recipe file', { exact: true });
+  await recipeInput.setInputFiles({
+    name: 'notes.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"title": "not a recipe"}'),
+  });
+  await expect(page.getByRole('alert')).toContainText('This file is not an OVERTONE recipe.');
+  await expect(page.getByRole('list', { name: 'Edit history' }).getByRole('listitem')).toHaveCount(
+    1,
+  );
+
+  await page.getByRole('button', { name: /Night circuit/ }).click();
+  await expect(exportButton).toBeEnabled();
+  await recipeInput.setInputFiles(recipePath);
+  await expect(page.getByRole('alert')).toContainText(
+    'This recipe was made for the Glasshouse example. Choose Glasshouse, then load the recipe again.',
+  );
+  await expect(page.getByRole('list', { name: 'Edit history' })).toHaveCount(0);
+});
+
 test('an unsupported import reports a clear error and leaves the studio usable', async ({
   page,
 }) => {

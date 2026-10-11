@@ -34,13 +34,14 @@ import type {
 } from './audio/types';
 import { createDemo, DEMOS } from './audio/demos';
 import { encodeWav } from './audio/wav';
+import { createRecipe, MAX_RECIPE_BYTES, readRecipe } from './audio/recipe';
 import { Spectrogram } from './components/Spectrogram';
 import { Waveform } from './components/Waveform';
 import { InfoDialog } from './components/InfoDialog';
 import { PreciseField } from './components/PreciseField';
 import { usePlayback } from './usePlayback';
 import { inspectDuration } from './importAudio';
-import { FFT_SIZE, HOP_SIZE } from './audio/stft';
+import { FFT_SIZE } from './audio/stft';
 import { MAX_DURATION, MAX_EDITS, MAX_FILE_MB, SOURCE_URL } from './config';
 
 const fmtHz = (hz: number) => (hz >= 1000 ? `${(hz / 1000).toFixed(1)}k` : `${Math.round(hz)}`);
@@ -88,6 +89,8 @@ export default function App() {
   const pendingFuture = useRef<SpectralEdit[]>([]);
   const clipRef = useRef<AudioClip | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const recipeInput = useRef<HTMLInputElement>(null);
+  const readyNotice = useRef('');
   const importId = useRef(0);
   const busy = processing || decoding;
   const playback = usePlayback(useCallback((message: string) => setError(message), []));
@@ -144,7 +147,7 @@ export default function App() {
           analysis: data.result.analysis,
         });
         setView('edited');
-        setNotice('Edit ready. Press Play, then compare Original and Edited.');
+        setNotice(readyNotice.current);
       }
     };
     instance.onerror = () => {
@@ -181,9 +184,14 @@ export default function App() {
   }, [busy]);
 
   const process = useCallback(
-    (next: SpectralEdit[], nextFuture: SpectralEdit[] = []) => {
+    (
+      next: SpectralEdit[],
+      nextFuture: SpectralEdit[] = [],
+      ready = 'Edit ready. Press Play, then compare Original and Edited.',
+    ) => {
       pendingEdits.current = next;
       pendingFuture.current = nextFuture;
+      readyNotice.current = ready;
       playback.pause();
       setEdits(next);
       setFuture(nextFuture);
@@ -339,30 +347,33 @@ export default function App() {
   function exportRecipe() {
     if (!clip) return;
     download(
-      JSON.stringify(
-        {
-          format: 'overtone-edit-recipe',
-          version: 1,
-          source: clip.name,
-          sampleRate: clip.sampleRate,
-          samples: clip.channels[0].length,
-          channels: clip.channels.length,
-          demo: demoId,
-          edits,
-          processing: {
-            fftSize: FFT_SIZE,
-            hopSize: HOP_SIZE,
-            window: 'periodic Hann',
-            output: '16-bit PCM WAV',
-          },
-        },
-        null,
-        2,
-      ),
+      JSON.stringify(createRecipe(clip, demoId, edits), null, 2),
       'application/json',
       'overtone-recipe.json',
     );
     setNotice('Edit recipe downloaded. It contains settings, not your audio.');
+  }
+  async function loadRecipe(file?: File) {
+    if (recipeInput.current) recipeInput.current.value = '';
+    if (!file || !clip || busy || !original) return;
+    try {
+      if (file.size > MAX_RECIPE_BYTES)
+        throw new Error('This file is too large to be an OVERTONE recipe.');
+      const text = await file.text();
+      // Another sound may have been chosen while the file was being read.
+      if (clipRef.current !== clip) return;
+      const recipe = readRecipe(text, clip, demoId, MAX_EDITS, () => crypto.randomUUID());
+      const count = `${recipe.edits.length} ${recipe.edits.length === 1 ? 'edit' : 'edits'}`;
+      process(
+        recipe.edits,
+        [],
+        recipe.matchesSource
+          ? `Recipe loaded: ${count} applied. Press Play, then compare Original and Edited.`
+          : `Recipe loaded: ${count} applied. It was made from “${recipe.source}” with different audio or settings, so the result may not match.`,
+      );
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'This recipe could not be loaded.');
+    }
   }
 
   return (
@@ -867,8 +878,8 @@ export default function App() {
           <div>
             <span className="eyebrow">TAKE IT WITH YOU</span>
             <p>
-              Export WAV saves the edited sound. The recipe is a small text file listing your edits,
-              not the audio.
+              Export WAV saves the edited sound. A recipe is a small text file listing your edits,
+              not the audio. Load one to repeat those edits on the same sound.
             </p>
             {(edited?.analysis.stats.peak ?? original?.stats.peak ?? 0) > 1 && (
               <p className="limit-note">
@@ -878,6 +889,22 @@ export default function App() {
             )}
           </div>
           <div className="export-actions">
+            <button
+              className="text-button recipe-button"
+              onClick={() => recipeInput.current?.click()}
+              disabled={busy || !original}
+            >
+              Load recipe
+            </button>
+            <input
+              ref={recipeInput}
+              type="file"
+              accept=".json,application/json"
+              aria-label="Load recipe file"
+              tabIndex={-1}
+              onChange={(e) => void loadRecipe(e.target.files?.[0])}
+              className="file-input"
+            />
             <button
               className="text-button recipe-button"
               onClick={exportRecipe}

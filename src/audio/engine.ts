@@ -38,7 +38,7 @@ export function validateClip(clip: AudioClip): void {
   }
 }
 
-function validateEdits(clip: AudioClip, edits: SpectralEdit[]): void {
+export function validateEdits(clip: AudioClip, edits: SpectralEdit[]): void {
   if (!Array.isArray(edits) || edits.length > MAX_ENGINE_EDITS)
     throw new Error(`An edit recipe can contain at most ${MAX_ENGINE_EDITS} edits.`);
   const duration = clip.channels[0].length / clip.sampleRate;

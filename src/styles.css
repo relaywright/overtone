@@ -972,6 +972,7 @@ h1 span {
 .recipe-button {
   font-size: 10px;
   color: #b1bba7;
+  min-height: 44px;
 }
 .export-button {
   font-size: 12px;

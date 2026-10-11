@@ -49,7 +49,7 @@ The browser's audio decoder reads supported local files. The studio accepts file
 
 WAV export writes interleaved, signed 16-bit PCM with the rendered channel count and sample rate. Floating-point samples are rounded and clamped to the representable range. There is no automatic normalization. PCM conversion is quantization, and values beyond full scale clip; it is not a lossless copy of arbitrary imported formats. The output volume control is for monitoring, not a mastering stage.
 
-The JSON recipe records the edit settings so a reviewer can inspect the operation. It does not embed a recording or replace the need for the same decoded source audio. Browser decoding and resampling can differ between environments.
+The JSON recipe records the edit settings so a reviewer can inspect the operation, and **Load recipe** applies them again. Loading checks the format, the edit count and every edit's bounds against the current sound before anything is processed. Rendering is deterministic, so a recipe loaded onto the same decoded source produces the same samples and the same WAV; a browser test verifies the exported bytes match. A recipe does not embed a recording or replace the need for the same decoded source audio. Browser decoding and resampling can differ between environments, so a recipe saved with a different sample rate, length or transform setting is applied with a warning that the result may not match.
 
 ## Limits and tradeoffs
 
