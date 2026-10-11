@@ -24,6 +24,18 @@ The repository was recreated on October 3, 2026 with rewritten history, so commi
 | Published artifact integrity       | The downloaded production JavaScript SHA-256 exactly matches the local build: `cf8a1d007fba8342b636c57c1521563f86cf2048caa52dfd90b5667f1c728462`.                                                                                               |
 | Distribution and privacy           | Third-party notices return HTTP 200. Fonts ship with the app. Source inspection finds no audio upload endpoints, analytics, API secrets, or private user documents. Production dependencies report zero known audit vulnerabilities at release. |
 
+## October 11, 2026 update
+
+Five changes since the release above, each with a regression test that fails on the previous code:
+
+- **Precise selection typing.** The number fields clamped every keystroke, so typing 5000 Hz ended at 12 kHz and 100 Hz ended at 4 kHz. Values now apply when they fit and are fitted to range on Enter or leaving the field.
+- **Time readouts.** 59.996 s read 00:60.00; the screen reader text said "60.0 seconds" and "1 minutes".
+- **Faster rendering.** Frames whose gain is the same in every bin skip the FFT. For a 60-second stereo 48 kHz clip in Node, one 1-second reduction went from 4.8 s to 0.78 s, and a full-length reduction from 4.9 s to 3.1 s. A unit test compares the result with transforming every frame (difference below 10⁻⁶).
+- **Load recipe.** A saved recipe can be loaded to reapply its edits. A browser test checks that loading it on the same sound exports a byte-identical WAV.
+- **Keyboard order.** The hidden file input behind Import audio is no longer an invisible tab stop.
+
+Checked locally on the production build: 52 unit tests pass; 43 browser checks pass at 1440px and 390px in Chromium, with the touch-only case skipped on desktop as before; `tests/studio.spec.ts` passes in Firefox and WebKit on Linux. The desktop and phone screenshots were recaptured to show the Load recipe button. The public site will be re-verified after the GitHub Actions deployment of this change; until then, the October 3 evidence above describes the live site.
+
 ## Reproduce
 
 ```sh
