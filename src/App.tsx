@@ -494,6 +494,7 @@ export default function App() {
               type="file"
               accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a"
               aria-label="Import audio file"
+              tabIndex={-1}
               onChange={(e) => void importFile(e.target.files?.[0])}
               className="file-input"
             />

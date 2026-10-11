@@ -285,6 +285,44 @@ test('an unsupported import reports a clear error and leaves the studio usable',
   inspectWav(await exportWav(page));
 });
 
+test('every keyboard tab stop is a visible control', async ({ page }) => {
+  await openStudio(page);
+  // Finding the target also opens the precise selection fields.
+  await page.getByRole('button', { name: 'Find the whistle', exact: true }).click();
+  await page.getByRole('link', { name: 'Skip to the studio', exact: true }).focus();
+  const seen: string[] = [];
+  for (let step = 0; step < 80; step++) {
+    if (step > 0) await page.keyboard.press('Tab');
+    const stop = await page.evaluate(() => {
+      const element = document.activeElement as HTMLElement | null;
+      if (!element || element === document.body) return null;
+      const box = element.getBoundingClientRect();
+      const name =
+        element.getAttribute('aria-label') ||
+        element.textContent?.trim() ||
+        element.closest('label')?.textContent?.trim() ||
+        element.tagName;
+      return { name, width: box.width, height: box.height };
+    });
+    if (!stop || seen.includes(stop.name)) break;
+    seen.push(stop.name);
+    // Regression: the hidden file input behind Import audio was a 1px, invisible tab stop.
+    expect(stop.width, `${stop.name} is too small to see`).toBeGreaterThanOrEqual(8);
+    expect(stop.height, `${stop.name} is too small to see`).toBeGreaterThanOrEqual(8);
+  }
+  for (const name of [
+    'Import audio',
+    'Start time',
+    'Reduce selection',
+    'Load recipe',
+    'Export WAV',
+  ])
+    expect(
+      seen.some((stop) => stop.startsWith(name)),
+      `${name} was not reached; visited ${seen.join(' | ')}`,
+    ).toBe(true);
+});
+
 test('studio and method dialog fit the viewport and pass serious accessibility checks', async ({
   page,
 }, testInfo) => {
