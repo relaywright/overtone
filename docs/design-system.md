@@ -23,7 +23,7 @@ Max width 1560px; 40px desktop gutters; 20px mobile. Main workspace has a wide s
 
 ## Interaction
 
-Clear hover/active/focus. Amber selected region with corner handles. Live playhead, subdued moving meter only during playback. No autoplay. State changes take 150–220ms. Reduced motion removes ambient and entrance movement. Canvas stays backed by numeric controls and plain text selection summary. Three comparison views, Original, Edited and Removed, share one toolbar group; the third is the exact difference and is never styled as a special effect.
+Clear hover/active/focus. Amber selected region with corner handles; its edges and corners are live grab zones with resize cursors, never decoration only. Live playhead, subdued output meter in the transport that moves only during playback and is measured, not animated. No autoplay. State changes take 150–220ms. Reduced motion removes ambient and entrance movement. Canvas stays backed by numeric controls and plain text selection summary. Three comparison views, Original, Edited and Removed, share one toolbar group; the third is the exact difference and is never styled as a special effect. The hover readout shows measured time, frequency, nearest note and level.
 
 ## Responsive
 

@@ -12,6 +12,7 @@ The editor performs deterministic digital signal processing. It does not use an 
 - Every render starts from the source samples. Undoing an edit removes its mask; it does not attempt to reverse an already degraded render.
 - Edits combine as multiplicative gains in one spectral pass. Reordering these gain masks does not change the mathematical result.
 - The worker returns both rendered channels and analysis derived from those channels. The interface does not display a painted-over original as an edited result.
+- The worker also returns the **removed** signal: for every sample, the source value minus the rendered value, in 32-bit float arithmetic, with its own analysis. Because the render is linear in the input, this is exactly the sound the masks took away, including any feathering, leakage or artifacts they introduced. It is a check on the edit, not a separate source estimate, and it carries the same resolution limits as the edit itself.
 
 ## Analysis and reconstruction
 
@@ -51,7 +52,7 @@ The **Removed** view is the original minus the edited output, computed sample by
 removed[n] = original[n] - edited[n]
 ```
 
-Because every render starts from the source samples, this difference is exact for the current edit list, not an estimate. After a reduction it contains the attenuated part of the selected region, scaled by `1 - 10^(gain/20)` at the center of the mask and fading with the mask's edges; after an isolation it contains everything outside the kept region. Its spectrogram and waveform are computed from that difference signal, so listening to it is the most direct check that an edit took out only the intended sound. Export always saves the edited sound, whichever view is showing.
+Because every render starts from the source samples, this difference is exact for the current edit list, not an estimate. After a reduction it contains the attenuated part of the selected region, scaled by `1 - 10^(gain/20)` at the center of the mask and fading with the mask's edges; after an isolation it contains everything outside the kept region. Its spectrogram and waveform are computed from that difference signal, so listening to it is the most direct check that an edit took away only the intended sound. Export always saves the edited sound, whichever view is showing.
 
 ## Import, playback, and export
 

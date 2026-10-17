@@ -50,7 +50,7 @@ It is a good fit for podcasters and video makers with a short problem clip, stud
 2. Press **Find the whistle**. A box appears around the thin bright line at about 3.2 kHz.
 3. Press **Reduce selection**. The line fades from the picture.
 4. Press **Play** again (applying an edit pauses playback), then switch between **Original** and **Edited** to hear the whistle come and go.
-5. Press **Removed** to see and hear only what the edit took out: the original minus the edited sound, sample for sample. The picture shows just the whistle's thin line.
+5. Press **Removed** to see and hear only what the edit took away: the original minus the edited sound, sample for sample. The picture shows just the whistle's thin line.
 6. Press **Export WAV** to save the result, or **Copy link** to share this exact edit.
 
 The example cards show real spectrograms of each sound, computed from the same samples the studio loads, so you can see the problem shape before you pick one. Hovering the spectrogram reads out the time, frequency and nearest musical note under the pointer.
@@ -61,9 +61,9 @@ The other two examples work the same way: _Night circuit_ hides a 120 Hz hum und
 
 1. Press **Import audio**, or drag a file onto the page. Uncompressed WAV is the most widely supported; MP3, OGG, FLAC and M4A depend on your browser.
 2. Press **Play** and watch for a shape that matches the sound you want gone.
-3. Drag a box around it. Keep the box tight: everything inside it changes.
+3. Drag a box around it. Keep the box tight: everything inside it changes. Drag any edge or corner of the box to adjust it, or type exact values under **Precise selection**. The readout beside the pointer shows the time, frequency, nearest note and measured level under it.
 4. Set the strength with the slider (−3 dB is subtle, −60 dB is nearly silent), then press **Reduce selection**. Or press **Isolate selection** to keep only the box.
-5. Press **Play** and switch between **Original**, **Edited** and **Removed**. Undo, redo or reset at any time. Your original is never changed.
+5. Press **Play** and switch between **Original**, **Edited** and **Removed** (press <kbd>C</kbd> to cycle while listening). Undo, redo or reset at any time. Your original is never changed.
 6. Press **Export WAV** to download the edited sound.
 
 **Download recipe** saves a small text file listing your edits (box positions and strengths), not the audio. It's useful for sharing exactly what you did. **Load recipe** reads one back and applies its edits, so you can repeat an edit later or check someone else's. Open the same sound first: on the same sound, the result is the same WAV, byte for byte.
@@ -102,7 +102,7 @@ npx playwright install chromium
 npm run test:e2e               # browser tests against the production build
 ```
 
-Unit tests measure the processed audio itself: perfect reconstruction with no edits, how much a selected tone actually drops, that an edit leaves audio well away from its time range alone, that the removed sound is exactly original minus edited, and that channel count and length never change. Browser tests run desktop and phone-sized Chromium through importing, editing, undo, comparison playback including the Removed view, downloads, reloading a recipe or opening a share link to the identical WAV, keyboard use and automated accessibility checks. Automated accessibility checks support manual review; they don't prove universal accessibility.
+Unit tests measure the processed audio itself: perfect reconstruction with no edits, how much a selected tone actually drops, that an edit leaves audio well away from its time range alone, that the removed sound is exactly original minus edited, and that channel count and length never change. Browser tests run desktop and phone-sized Chromium through importing, editing, resizing a selection by its edges, undo, three-way comparison playback, the output meter, downloads, reloading a recipe or opening a share link to the identical WAV, keyboard use and automated accessibility checks. Automated accessibility checks support manual review; they don't prove universal accessibility.
 
 To run the browser tests against the live site in PowerShell:
 

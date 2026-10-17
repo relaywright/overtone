@@ -71,7 +71,7 @@ test('a link carries an example’s edits and opens to the identical WAV', async
   await page.goto('about:blank');
   await openStudio(page, `./${hash}`);
   await expect(status).toHaveText(
-    'Link opened: 1 edit applied. Press Play, then compare Original and Edited.',
+    'Link opened: 1 edit applied. Press Play, then compare Original, Edited and Removed.',
   );
   await expect(history).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Edited', exact: true })).toHaveAttribute(
@@ -91,7 +91,7 @@ test('a link carries an example’s edits and opens to the identical WAV', async
     window.location.hash = fragment;
   }, hash);
   await expect(status).toHaveText(
-    'Link opened: 1 edit applied. Press Play, then compare Original and Edited.',
+    'Link opened: 1 edit applied. Press Play, then compare Original, Edited and Removed.',
   );
   await expect(history).toHaveCount(1);
   expect((await exportWav(page)).equals(edited)).toBe(true);
@@ -123,7 +123,7 @@ test('a link that cannot be read opens the example without edits and says so', a
   );
 });
 
-test('the Removed view plays and shows only what the edits took out', async ({ page }) => {
+test('the Removed view plays and shows only what the edits took away', async ({ page }) => {
   await openStudio(page);
   const removed = page.getByRole('button', { name: 'Removed', exact: true });
   const meta = page.locator('.signal-meta');
@@ -142,7 +142,7 @@ test('the Removed view plays and shows only what the edits took out', async ({ p
   const edited = await exportWav(page);
   await removed.click();
   await expect(removed).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.spectrum-footer')).toContainText('what your edits took out');
+  await expect(page.locator('.spectrum-footer')).toContainText('what your edits took away');
   // The whistle alone peaks far below the full mix: it was a quiet line in a loud picture.
   const removedPeak = await peakOf();
   expect(removedPeak).toBeLessThan(originalPeak - 10);
@@ -155,10 +155,11 @@ test('the Removed view plays and shows only what the edits took out', async ({ p
 
   // Export always saves the edited sound, whichever view is showing.
   expect((await exportWav(page)).equals(edited)).toBe(true);
+  // With nothing removed the view falls back to Edited, which now equals the original.
   await page.getByRole('button', { name: 'Reset edits', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Export WAV', exact: true })).toBeEnabled();
   await expect(removed).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Original', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Edited', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );

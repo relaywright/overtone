@@ -12,6 +12,7 @@ RIPPLE demonstrates operations modeling. OVERTONE demonstrates an entirely diffe
 - Drag a time/frequency region or use precise labeled controls, including touch and keyboard.
 - Reduce a region or isolate it with feathered spectral masks.
 - Non-destructive history, undo/redo/reset; synchronized comparison of the original, the edit, and the exact removed difference.
+- Selections adjustable by dragging their edges and corners as well as by drawing and typing.
 - Example thumbnails and every other picture of sound are computed from audio, never drawn.
 - Share links reproduce an example edit from the page address alone; local files never travel in a link.
 - Local import of browser-supported audio (WAV/MP3/OGG etc); clear bounded file/duration/channel limits.

@@ -37,6 +37,8 @@ export interface Analysis {
 export interface ProcessResult {
   channels: Float32Array[];
   analysis: Analysis;
+  /** What the edits took away: the original minus the rendered output, sample by sample. */
+  removed: { channels: Float32Array[]; analysis: Analysis };
 }
 export interface Demo {
   id: DemoId;
@@ -53,7 +55,6 @@ export type WorkerRequest =
   | { id: number; type: 'previews' };
 export type WorkerResponse =
   | { id: number; type: 'loaded'; analysis: Analysis }
-  /** `removed` is the original minus the result: exactly what the edits took out. */
-  | { id: number; type: 'processed'; result: ProcessResult; removed: ProcessResult }
+  | { id: number; type: 'processed'; result: ProcessResult }
   | { id: number; type: 'previews'; previews: Record<DemoId, SpectrogramData> }
   | { id: number; type: 'error'; message: string };

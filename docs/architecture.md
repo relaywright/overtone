@@ -20,6 +20,7 @@ flowchart LR
   R --> P[Web Audio playback]
   S --> P
   DIFF --> P
+  P --> L[Output level meter]
   R --> X[PCM16 WAV download]
   A --> UI[Interactive studio]
   E <--> H[Address fragment: share link for examples]
@@ -37,11 +38,11 @@ The address fragment mirrors the edit list of a generated example. It is read on
 
 ## Playback is separate from editing
 
-The playback hook owns the audio context, output gain, source node, and transport clock. AudioBufferSourceNodes are single-use, so seeking and comparison create new nodes at the current offset. Changing the comparison view preserves the playhead; changing the source resets it. Output volume changes monitoring gain only.
+The playback hook owns the audio context, output gain, source node, an analyser, and the transport clock. AudioBufferSourceNodes are single-use, so seeking and comparison create new nodes at the current offset. Changing the comparison view, including to the removed signal, preserves the playhead; changing the source resets it. Output volume changes monitoring gain only. The analyser is fed before the gain, so the level meter reports the audio itself rather than the listening volume, and the meter writes to its element on each animation frame without re-rendering the studio.
 
 ## Display is evidence, not the operation
 
-The Canvas spectrogram uses logarithmic display bins and a fixed decibel scale. It is recomputed from the reconstructed PCM after each edit, and again from the difference signal for the Removed view. The example thumbnails are the same computation at 96 by 40 cells, painted with the same palette. Canvas painting is independent of the advancing playhead, which is a lightweight overlay. Pointer, touch, and numeric selection all describe the same rectangle in seconds and hertz.
+The Canvas spectrogram uses logarithmic display bins and a fixed decibel scale. It is recomputed from the reconstructed PCM after each edit, and again from the difference signal for the Removed view. The example thumbnails are the same computation at 96 by 40 cells, painted with the same palette. Canvas painting is independent of the advancing playhead, which is a lightweight overlay. The hover readout reads its level from the same display data the canvas was painted from. Pointer, touch, and numeric selection all describe the same rectangle in seconds and hertz; dragging an edge or corner of that rectangle changes only the sides being held.
 
 ## Why these boundaries
 

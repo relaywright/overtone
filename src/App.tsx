@@ -58,6 +58,7 @@ const fmtTime = (seconds: number) => {
 };
 const db = (value: number) => (value > 0 ? `${(20 * Math.log10(value)).toFixed(1)}` : '−∞');
 type View = 'original' | 'edited' | 'removed';
+const VIEWS: View[] = ['original', 'edited', 'removed'];
 interface Rendered {
   clip: AudioClip;
   analysis: Analysis;
@@ -118,6 +119,7 @@ export default function App() {
   const recipeInput = useRef<HTMLInputElement>(null);
   const readyNotice = useRef('');
   const importId = useRef(0);
+  const meter = useRef<HTMLDivElement>(null);
   // Edits carried by the opening link, applied once the example has loaded.
   const linkedEdits = useRef(initial.edits);
   const linkError = useRef(initial.error);
@@ -130,6 +132,9 @@ export default function App() {
   const shown = edited && view !== 'original' ? edited[view] : null;
   const current = shown?.analysis ?? original;
   const activeDemo = DEMOS.find((d) => d.id === demoId);
+  // The Removed view only has something to play once an edit exists.
+  const viewAvailable = (candidate: View) =>
+    candidate === 'original' || (!!edited && (candidate === 'edited' || edits.length > 0));
 
   const loadClip = useCallback(
     (next: AudioClip, demo: DemoId | null) => {
@@ -187,28 +192,21 @@ export default function App() {
           processRef.current(
             linked,
             [],
-            `Link opened: ${count} applied. Press Play, then compare Original and Edited.`,
+            `Link opened: ${count} applied. Press Play, then compare Original, Edited and Removed.`,
           );
         }
       }
       if (data.type === 'processed' && clipRef.current) {
         committedEdits.current = pendingEdits.current;
         committedFuture.current = pendingFuture.current;
-        // With no edits left there is nothing to compare: show the original itself.
-        if (pendingEdits.current.length === 0) {
-          setEdited(null);
-          setView('original');
-          setNotice(readyNotice.current);
-          return;
-        }
         setEdited({
           edited: {
             clip: { ...clipRef.current, channels: data.result.channels },
             analysis: data.result.analysis,
           },
           removed: {
-            clip: { ...clipRef.current, channels: data.removed.channels },
-            analysis: data.removed.analysis,
+            clip: { ...clipRef.current, channels: data.result.removed.channels },
+            analysis: data.result.removed.analysis,
           },
         });
         setView('edited');
@@ -241,6 +239,35 @@ export default function App() {
   useEffect(() => {
     if (!busy && original) playback.setClip(shown?.clip ?? clip, true);
   }, [shown, original, clip, busy, playback.setClip]);
+  // The output meter reads the analyser on every frame while sound plays and writes
+  // straight to the element, so metering never re-renders the studio.
+  useEffect(() => {
+    const element = meter.current;
+    if (!element) return;
+    if (!playback.playing) {
+      element.style.setProperty('--level', '0');
+      element.style.setProperty('--peak', '0');
+      return;
+    }
+    let frame = 0;
+    let shownLevel = 0;
+    let held = 0;
+    let heldUntil = 0;
+    const update = (now: number) => {
+      const level = playback.readLevel();
+      // Rise instantly, fall gradually: the eye can follow a decay but not a flicker.
+      shownLevel = level > shownLevel ? level : shownLevel * 0.86;
+      if (level >= held || now > heldUntil) {
+        held = level;
+        heldUntil = now + 900;
+      }
+      element.style.setProperty('--level', shownLevel.toFixed(3));
+      element.style.setProperty('--peak', held.toFixed(3));
+      frame = requestAnimationFrame(update);
+    };
+    frame = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(frame);
+  }, [playback.playing, playback.readLevel]);
   // The address always holds a link to the current edits of an example (never to a local
   // file, which a link cannot recreate). replaceState keeps the Back button unaffected.
   useEffect(() => {
@@ -263,7 +290,7 @@ export default function App() {
     (
       next: SpectralEdit[],
       nextFuture: SpectralEdit[] = [],
-      ready = 'Edit ready. Press Play, then compare Original and Edited.',
+      ready = 'Edit ready. Press Play, then compare Original, Edited and Removed.',
     ) => {
       pendingEdits.current = next;
       pendingFuture.current = nextFuture;
@@ -324,6 +351,18 @@ export default function App() {
         if (event.shiftKey) redo();
         else undo();
       }
+      if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        if (busy || !original) return;
+        event.preventDefault();
+        setView((previous) => {
+          // Step to the next view that has something to play, wrapping around.
+          for (let step = 1; step < VIEWS.length; step++) {
+            const candidate = VIEWS[(VIEWS.indexOf(previous) + step) % VIEWS.length];
+            if (viewAvailable(candidate)) return candidate;
+          }
+          return previous;
+        });
+      }
       if (
         event.code === 'Space' &&
         !busy &&
@@ -336,7 +375,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [about, busy, original, playback.toggle, undo, redo]);
+  }, [about, busy, original, edited, edits.length, playback.toggle, undo, redo]);
 
   function applyEdit(kind: SpectralEdit['kind']) {
     if (!selection || busy || edits.length >= MAX_EDITS) return;
@@ -478,7 +517,7 @@ export default function App() {
         recipe.edits,
         [],
         recipe.matchesSource
-          ? `Recipe loaded: ${count} applied. Press Play, then compare Original and Edited.`
+          ? `Recipe loaded: ${count} applied. Press Play, then compare Original, Edited and Removed.`
           : `Recipe loaded: ${count} applied. It was made from “${recipe.source}” with different audio or settings, so the result may not match.`,
       );
     } catch (reason) {
@@ -633,8 +672,8 @@ export default function App() {
                   <button
                     aria-pressed={view === 'removed'}
                     className={view === 'removed' ? 'active' : ''}
-                    disabled={busy || !edited}
-                    title="Only what your edits took out"
+                    disabled={busy || !viewAvailable('removed')}
+                    title="Hear only what your edits took away"
                     onClick={() => setView('removed')}
                   >
                     Removed
@@ -688,6 +727,18 @@ export default function App() {
                     <Repeat2 size={20} />
                   </button>
                 </div>
+                <div
+                  className={`level-meter${playback.playing ? ' live' : ''}`}
+                  ref={meter}
+                  aria-hidden="true"
+                  title="Output level"
+                >
+                  <span>OUT</span>
+                  <div>
+                    <i />
+                    <b />
+                  </div>
+                </div>
                 <div className="volume-control">
                   <Volume2 size={17} />
                   <input
@@ -701,7 +752,7 @@ export default function App() {
                   />
                 </div>
                 <span className="space-hint">
-                  <kbd>space</kbd> to play
+                  <kbd>space</kbd> play <kbd>c</kbd> compare
                 </span>
               </div>
               <div className={`spectrum-wrap ${busy ? 'is-busy' : ''}`}>
@@ -730,8 +781,10 @@ export default function App() {
                 <span>
                   <Crosshair size={13} />{' '}
                   {view === 'removed'
-                    ? 'Showing only what your edits took out: the original minus the edited sound, sample for sample.'
-                    : 'Drag a box around a bright shape to select that sound'}
+                    ? 'Showing only what your edits took away: the original minus the edited sound, sample for sample. Press Play to hear it on its own.'
+                    : selection
+                      ? 'Drag an edge or corner of the box to adjust it, or draw a new one'
+                      : 'Drag a box around a bright shape to select that sound'}
                 </span>
               </div>
               <div className="waveform-row">
@@ -1072,8 +1125,8 @@ export default function App() {
           <div>
             <span className="step-index">03</span>
             <p>
-              <strong>Compare.</strong> Press Play, then switch between Original and Edited. Undo is
-              always there.
+              <strong>Compare.</strong> Press Play, then switch between Original, Edited and
+              Removed. Undo is always there.
             </p>
           </div>
         </section>

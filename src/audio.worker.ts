@@ -1,4 +1,4 @@
-import { analyzeClip, computeSpectrogram, processClip, subtractChannels } from './audio/engine';
+import { analyzeClip, computeSpectrogram, processClip } from './audio/engine';
 import { createDemo, DEMOS } from './audio/demos';
 import type {
   AudioClip,
@@ -39,18 +39,13 @@ scope.onmessage = ({ data }) => {
     } else {
       if (!loadedClip) throw new Error('Load an audio clip before processing.');
       const result = processClip(loadedClip, data.edits);
-      const removedChannels = subtractChannels(loadedClip.channels, result.channels);
-      const removed = {
-        channels: removedChannels,
-        analysis: analyzeClip({ ...loadedClip, channels: removedChannels }),
-      };
-      scope.postMessage({ id: data.id, type: 'processed', result, removed }, [
+      scope.postMessage({ id: data.id, type: 'processed', result }, [
         ...result.channels.map((channel) => channel.buffer),
         result.analysis.spectrogram.values.buffer,
         result.analysis.waveform.buffer,
-        ...removed.channels.map((channel) => channel.buffer),
-        removed.analysis.spectrogram.values.buffer,
-        removed.analysis.waveform.buffer,
+        ...result.removed.channels.map((channel) => channel.buffer),
+        result.removed.analysis.spectrogram.values.buffer,
+        result.removed.analysis.waveform.buffer,
       ]);
     }
   } catch (error) {

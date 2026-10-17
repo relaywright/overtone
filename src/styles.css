@@ -587,8 +587,47 @@ h1 span {
   font-size: 11px;
   color: #9faa96;
 }
-.volume-control {
+.level-meter {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #9da993;
+}
+.level-meter > div {
+  position: relative;
+  width: 76px;
+  height: 5px;
+  overflow: hidden;
+  background: #0b0e0b;
+  border: 1px solid #2d3429;
+  border-radius: 2px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.level-meter.live > div {
+  opacity: 1;
+}
+/* The bar is the measured output level, written by the playback hook, never an animation. */
+.level-meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--level, 0) * 100%);
+  background: linear-gradient(90deg, #8ea67a, #ffb85b 72%, #ff8a5b);
+}
+.level-meter b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--peak, 0) * 100%);
+  width: 1px;
+  background: #fff1cc;
+  transform: translateX(-1px);
+}
+.volume-control {
   display: flex;
   gap: 9px;
   align-items: center;
@@ -609,6 +648,9 @@ h1 span {
   padding: 3px 5px;
   border-radius: 3px;
   margin-right: 3px;
+}
+.space-hint kbd:not(:first-child) {
+  margin-left: 7px;
 }
 .precision-section {
   border-top: 1px solid #2c3328;
@@ -1617,7 +1659,8 @@ dialog::backdrop {
   .volume-control input {
     width: 46px;
   }
-  .space-hint {
+  .space-hint,
+  .level-meter {
     display: none;
   }
   .precision-section {

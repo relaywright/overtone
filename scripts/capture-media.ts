@@ -34,19 +34,20 @@ try {
   await page.locator('.sound-workspace').screenshot({ path: 'docs/media/studio-removed.png' });
   await page.getByRole('button', { name: 'Edited', exact: true }).click();
 
-  // Social preview card: the studio itself, cropped to the 1200 × 630 size link previews use.
-  await page.setViewportSize({ width: 1200, height: 630 });
-  await page.evaluate(() => {
-    const studio = document.querySelector<HTMLElement>('#studio');
-    const top = studio ? studio.getBoundingClientRect().top + window.scrollY : 0;
-    window.scrollTo(0, top - 1);
+  // The link preview image: the studio with the edit applied, at the 1200×630 size that
+  // social cards expect. The page gutter is 46px, so a 1292px viewport gives a 1200px studio.
+  await page.setViewportSize({ width: 1292, height: 900 });
+  const studio = page.locator('#studio');
+  await studio.scrollIntoViewIfNeeded();
+  const bounds = await studio.boundingBox();
+  const scrollY = await page.evaluate(() => window.scrollY);
+  expect(bounds).not.toBeNull();
+  expect(Math.round(bounds!.width)).toBe(1200);
+  await page.screenshot({
+    path: 'public/social.png',
+    fullPage: true,
+    clip: { x: bounds!.x, y: bounds!.y + scrollY, width: 1200, height: 630 },
   });
-  await page.evaluate(async () => {
-    await Promise.all(
-      document.getAnimations().map((animation) => animation.finished.catch(() => {})),
-    );
-  });
-  await page.screenshot({ path: 'public/social-card.png' });
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -54,7 +55,7 @@ try {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
   expect(errors).toEqual([]);
   console.log(
-    `Captured current studio, edited result, removed view, social card and 390px layout from ${baseURL}`,
+    `Captured current studio, edited result, removed view, link preview image and 390px layout from ${baseURL}`,
   );
 } finally {
   await browser.close();

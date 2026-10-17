@@ -70,10 +70,12 @@ The "widen the selection" check reads `FFT_SIZE`, and the downloaded recipe reco
 - **Colors.** The core palette is the `:root` variables at the top of `src/styles.css` (`--text`, `--muted`, `--accent`, `--border`, `--surface`). Many other shades are written directly into the rules in `src/styles.css` and `src/components/spectrum.css`, so search both files for a color's hex value. [docs/design-system.md](design-system.md) gives an overview of the palette and the intent behind it.
 - **Spectrogram colors.** `colorStops` in `src/components/palette.ts` maps quiet to loud, from near black through plum and orange to pale gold. Each stop is `[position from 0 to 1, red, green, blue]`. The display covers −96 dB to 0 dB of full scale, and the example thumbnails use the same scale, so a color means the same loudness everywhere.
 - **Fonts.** `src/main.tsx` imports Space Grotesk and IBM Plex Mono from Fontsource, so they're bundled with the site. To swap one, install another `@fontsource/<name>` package, replace the imports, then update `font-family` and `--mono` in `src/styles.css` and the two matching `font-family` lines in `src/components/spectrum.css`.
-- **Words.** Most on-screen copy lives in `src/App.tsx`, `src/components/InfoDialog.tsx` and the example descriptions in `src/audio/demos.ts`. Smaller labels are in `src/components/Spectrogram.tsx` and `Waveform.tsx`, and error messages also come from `src/usePlayback.ts`, `src/importAudio.ts`, `src/audio/engine.ts` and `src/audio/share.ts`. The browser tests and `scripts/capture-media.ts` find buttons by their labels (such as "Reduce selection" and "Export WAV"), so if you rename a button, search `tests/` and `scripts/` for the old label.
+- **Words.** Most on-screen copy lives in `src/App.tsx`, `src/components/InfoDialog.tsx` and the example descriptions in `src/audio/demos.ts`. Smaller labels are in `src/components/Spectrogram.tsx` and `Waveform.tsx`, and error messages also come from `src/usePlayback.ts`, `src/importAudio.ts`, `src/audio/engine.ts` and `src/audio/share.ts`. The browser tests and `scripts/capture-media.ts` find buttons by their labels (such as "Reduce selection", "Removed" and "Export WAV"), so if you rename a button, search `tests/` and `scripts/` for the old label.
+- **Keyboard shortcuts.** The `onKey` handler in `src/App.tsx` maps <kbd>Space</kbd>, <kbd>C</kbd> and <kbd>Ctrl</kbd>+<kbd>Z</kbd>. The on-screen hint next to the volume control and the table in the [user guide](guide.md#keyboard-and-touch) list them, so change all three together.
+- **Selection handles.** The grab distance for a box's edges is `reach` in `edgesAt` in `src/components/Spectrogram.tsx`: 8 px for a mouse, 16 px for touch and pen.
 - **Note names.** The hover readout's note names come from `noteName` in `src/audio/pitch.ts`, with A4 at 440 Hz. Change the reference pitch there, or return an empty string to hide them.
 - **Type sizes.** Body copy is 13–14px and the smallest labels are 9–10px, in `src/styles.css`. Nothing on screen is set below 9px, including on phones; keep that floor if you restyle.
-- **Page title, search description and link preview.** `index.html` holds the title, description and the Open Graph and Twitter tags that give the page a picture when its link is pasted into a chat or social post. The picture is `public/social-card.png`, which `npm run screenshots` regenerates from the real studio. The tags use absolute addresses, so change `https://relaywright.github.io/overtone/` there when you deploy elsewhere.
+- **Page title, search description and link preview.** `index.html` holds the title, description and the Open Graph and Twitter tags that give the page a picture when its link is pasted into a chat or social post. The picture is `public/social.png`, which `npm run screenshots` regenerates from the real studio. The tags use absolute addresses, so change `https://relaywright.github.io/overtone/` there when you deploy elsewhere.
 
 ## Deploy it somewhere else
 
@@ -103,7 +105,7 @@ npm run test:e2e                # browser tests on desktop and phone sizes
 npm run format                  # tidy formatting
 ```
 
-If you changed anything visible, regenerate the README screenshots and the link-preview card with the preview server running (`npm run preview` in one terminal, `npm run screenshots` in another), then look at the new images in `docs/media/` and `public/social-card.png` before committing.
+If you changed anything visible, regenerate the README screenshots and the link-preview card with the preview server running (`npm run preview` in one terminal, `npm run screenshots` in another), then look at the new images in `docs/media/` and `public/social.png` before committing.
 
 ## Ground rules worth keeping
 
