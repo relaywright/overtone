@@ -286,29 +286,32 @@ h1 span {
 }
 .sample-art {
   height: 43px;
-  width: 54px;
+  width: 62px;
   display: flex;
   gap: 2px;
   align-items: center;
   flex-shrink: 0;
   overflow: hidden;
 }
+/* Each bar is the measured peak of one slice of the example, not a decorative pattern. */
 .sample-art i {
   display: block;
-  width: 2px;
+  flex: 1;
+  min-height: 2px;
   background: #b79f73;
   opacity: 0.6;
+  border-radius: 1px;
+  transition: height 0.4s ease;
+}
+.sample-art i.pending {
+  opacity: 0.2;
 }
 .active .sample-art i {
   background: var(--accent);
   opacity: 0.85;
 }
 .sample-art-1 i {
-  width: 3px;
   background: #9eab8d;
-}
-.sample-art-2 {
-  transform: rotate(0);
 }
 .sample-art-2 i {
   background: #acb2a0;
@@ -594,8 +597,46 @@ h1 span {
   font-size: 10px;
   color: #9faa96;
 }
-.volume-control {
+.level-meter {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #9da993;
+}
+.level-meter > div {
+  position: relative;
+  width: 76px;
+  height: 5px;
+  overflow: hidden;
+  background: #0b0e0b;
+  border: 1px solid #2d3429;
+  border-radius: 2px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.level-meter.live > div {
+  opacity: 1;
+}
+.level-meter i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--level, 0) * 100%);
+  background: linear-gradient(90deg, #8ea67a, #ffb85b 72%, #ff8a5b);
+}
+.level-meter b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--peak, 0) * 100%);
+  width: 1px;
+  background: #fff1cc;
+  transform: translateX(-1px);
+}
+.volume-control {
   display: flex;
   gap: 9px;
   align-items: center;
@@ -616,6 +657,10 @@ h1 span {
   padding: 3px 5px;
   border-radius: 3px;
   margin-right: 3px;
+}
+.space-hint kbd + kbd,
+.space-hint kbd:not(:first-child) {
+  margin-left: 7px;
 }
 .precision-section {
   border-top: 1px solid #2c3328;
@@ -1473,9 +1518,6 @@ dialog::backdrop {
     margin-bottom: 7px;
     width: 45px;
   }
-  .sample-art i {
-    transform: scaleY(0.6);
-  }
   .sample-number {
     position: absolute;
     top: 10px;
@@ -1625,7 +1667,8 @@ dialog::backdrop {
   .volume-control input {
     width: 46px;
   }
-  .space-hint {
+  .space-hint,
+  .level-meter {
     display: none;
   }
   .precision-section {
@@ -1926,8 +1969,26 @@ dialog::backdrop {
 .waveform-row {
   min-height: 80px;
 }
+/* The spectrogram grows to fill its column so the picture, not empty panel, meets the inspector. */
+.sound-workspace {
+  display: flex;
+  flex-direction: column;
+}
+.spectrum-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.spectrum-wrap > .spectrum,
+.spectrum-wrap .spectrum-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 .studio-grid .spectrum-stage {
-  height: 300px;
+  flex: 1;
+  height: auto;
+  min-height: 300px;
 }
 @media (max-width: 680px) {
   .site-header {
@@ -1940,7 +2001,7 @@ dialog::backdrop {
     padding: 0 11px;
   }
   .studio-grid .spectrum-stage {
-    height: 240px;
+    min-height: 240px;
   }
   .spectrum-caption {
     font-size: 8px;

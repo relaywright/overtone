@@ -111,6 +111,11 @@ test('mouse selection maps to time and logarithmic frequency, clamps at edges, a
   expect(Math.abs(lowerRight.startTime - 6)).toBeLessThan(timeTolerance);
   expectCloseToFrequency(lowerRight.highHz, frequencyAt(0.5), box.height);
 
+  // The next drag starts where that box's corner now sits, which would resize it.
+  // Clear it first so the drag draws a fresh box from the center.
+  await stage.focus();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.spectrum-selection')).toHaveCount(0);
   box = await stableBox(page, stage);
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();

@@ -36,6 +36,19 @@ Five changes since the release above, each with a regression test that fails on 
 
 Checked locally on the production build: 52 unit tests pass; 43 browser checks pass at 1440px and 390px in Chromium, with the touch-only case skipped on desktop as before; `tests/studio.spec.ts` passes in Firefox and WebKit on Linux. The desktop and phone screenshots were recaptured to show the Load recipe button. The public site will be re-verified after the GitHub Actions deployment of this change; until then, the October 3 evidence above describes the live site.
 
+## October 17, 2026 update
+
+Six changes since October 11, each covered by a test that fails on the previous code:
+
+- **Removed view.** The worker now returns the original minus the rendered audio, sample by sample, with its own spectrogram and waveform. A third comparison button plays and draws it. A unit test checks the difference is exact in 32-bit float, contains the reduced tone and not the retained one, and is analyzed from its own samples; a browser test checks the view enables only when edits exist, plays, reports its own measured peak, and falls back to Edited when undone.
+- **Resizable selection.** Dragging an edge or corner of the box adjusts only the sides being held, with resize cursors and a wider grab zone for touch. A browser test drags the right edge, the bottom edge and a corner of the whistle selection and checks the other sides stay fixed, then confirms a drag away from the edges still draws a fresh box. One existing selection test now clears the box between drags, because its third drag began exactly on a corner.
+- **Level at the cursor.** The hover readout shows the measured level under the pointer, read from the same display data the canvas was painted from.
+- **Output meter.** An analyser taps the audio before the volume control; the transport meter moves only while sound plays. A browser test checks it is at zero before Play, rises during playback, and returns to zero on Pause.
+- **C to compare.** The C key cycles through the views that have something to play, while playback continues.
+- **Real card art and link previews.** The example cards show measured peaks of each example instead of a drawn pattern (unit test per example), and `index.html` carries Open Graph and Twitter card tags with a generated `public/social.png`.
+
+Checked locally on the production build: 56 unit tests pass; 48 browser checks pass at 1440px and 390px in Chromium, with the touch-only case skipped on desktop and the pointer-only handle case skipped on the phone project. Screenshots in `docs/media/` and the link preview image were recaptured from this build. The public site will be re-verified after the GitHub Actions deployment of this change.
+
 ## Reproduce
 
 ```sh

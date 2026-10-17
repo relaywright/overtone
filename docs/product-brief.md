@@ -11,7 +11,8 @@ RIPPLE demonstrates operations modeling. OVERTONE demonstrates an entirely diffe
 - A real log-frequency spectrogram and waveform derived from the audio, never a decorative fake.
 - Drag a time/frequency region or use precise labeled controls, including touch and keyboard.
 - Reduce a region or isolate it with feathered spectral masks.
-- Non-destructive history, undo/redo/reset; synchronized original/edited comparison.
+- Non-destructive history, undo/redo/reset; synchronized original/edited/removed comparison, where removed is the exact difference the edits made.
+- Selections adjustable by dragging their edges and corners as well as by drawing and typing.
 - Local import of browser-supported audio (WAV/MP3/OGG etc); clear bounded file/duration/channel limits.
 - Export edited PCM WAV with correct format and bounded output; download an edit recipe for reproducibility.
 - Background processing so the interface stays responsive; pending and failed work cannot masquerade as current output.

@@ -37,6 +37,8 @@ export interface Analysis {
 export interface ProcessResult {
   channels: Float32Array[];
   analysis: Analysis;
+  /** What the edits took away: the original minus the rendered output, sample by sample. */
+  removed: { channels: Float32Array[]; analysis: Analysis };
 }
 export interface Demo {
   id: DemoId;

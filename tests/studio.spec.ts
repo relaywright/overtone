@@ -237,7 +237,7 @@ test('a downloaded recipe reapplies the same edits and reproduces the exact WAV'
   await (await chooser).setFiles(recipePath);
   await expect(exportButton).toBeEnabled();
   await expect(page.locator('.studio-status [role="status"]')).toHaveText(
-    'Recipe loaded: 2 edits applied. Press Play, then compare Original and Edited.',
+    'Recipe loaded: 2 edits applied. Press Play, then compare Original, Edited and Removed.',
   );
   await expect(page.getByRole('list', { name: 'Edit history' }).getByRole('listitem')).toHaveCount(
     2,

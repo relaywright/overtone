@@ -24,6 +24,9 @@ scope.onmessage = ({ data }) => {
         ...result.channels.map((channel) => channel.buffer),
         result.analysis.spectrogram.values.buffer,
         result.analysis.waveform.buffer,
+        ...result.removed.channels.map((channel) => channel.buffer),
+        result.removed.analysis.spectrogram.values.buffer,
+        result.removed.analysis.waveform.buffer,
       ]);
     }
   } catch (error) {

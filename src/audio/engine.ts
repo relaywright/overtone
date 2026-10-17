@@ -138,5 +138,17 @@ export function processClip(clip: AudioClip, edits: SpectralEdit[]): ProcessResu
     active.length === 0
       ? clip.channels.map((channel) => channel.slice())
       : transformChannels(clip.channels, clip.sampleRate, active);
-  return { channels, analysis: analyzeClip({ ...clip, channels }) };
+  // The difference is exact arithmetic on the rendered samples, so listening to it
+  // is listening to precisely what the edit changed, not a second estimate.
+  const removed = clip.channels.map((source, index) => {
+    const output = channels[index];
+    const difference = new Float32Array(source.length);
+    for (let i = 0; i < source.length; i++) difference[i] = source[i] - output[i];
+    return difference;
+  });
+  return {
+    channels,
+    analysis: analyzeClip({ ...clip, channels }),
+    removed: { channels: removed, analysis: analyzeClip({ ...clip, channels: removed }) },
+  };
 }

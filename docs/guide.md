@@ -8,9 +8,9 @@ OVERTONE lets you turn down, or keep only, one part of a short recording by draw
 
 1. **Examples.** Three generated sounds, each hiding something to fix. Pick one to load it.
 2. **File bar.** The name of the current sound, whether it's an example or your own file, and **Import audio**.
-3. **Spectrogram toolbar.** **Original** and **Edited** switch what you hear and see. The arrows are undo and redo.
-4. **Transport.** Play or pause, the time readout, loop, and listening volume. The volume slider only changes what you hear; it doesn't change the export.
-5. **Spectrogram.** The picture of the sound. Drag on it to draw a selection box.
+3. **Spectrogram toolbar.** **Original**, **Edited** and **Removed** switch what you hear and see. **Removed** is only what your edits took away: the original minus the edited sound, so a good whistle edit plays as a whistle on its own and a careless one plays bits of the music too. The arrows are undo and redo.
+4. **Transport.** Play or pause, the time readout, loop, an output meter that moves only while sound plays, and listening volume. The volume slider only changes what you hear; it doesn't change the export or the meter.
+5. **Spectrogram.** The picture of the sound. Drag on it to draw a selection box, then drag any edge or corner of the box to adjust it. The small readout in the corner follows the pointer and shows the time, frequency and measured level under it.
 6. **Waveform.** The overall loudness over time. Click or drag here to jump to a moment.
 7. **Precise selection.** Opens four number boxes (start time, end time, low frequency, high frequency) so you can type an exact selection instead of dragging. The box follows along as you type. When you press <kbd>Enter</kbd> or move to another field, a value outside the allowed range moves to the nearest one that fits.
 8. **Edit panel** (right side, or below on a phone). Shows your selection, sets the strength, and applies **Reduce** or **Isolate**. On an example, a **Find the…** button selects the problem sound for you.
@@ -51,9 +51,9 @@ Try it on the _Night circuit_ example, which has a 120 Hz hum: press **Find the 
 
 ### Remove a whistle, beep or whine
 
-1. Find the thin horizontal line. The hover readout shows its time and frequency.
-2. Drag a box a little taller than the line, across only the time it's audible. If the editor asks you to widen the selection, make it taller, longer or both, as the message says: it needs a minimum height and a minimum length.
-3. Reduce at −24 to −40 dB. Press **Play** and compare with **Original**.
+1. Find the thin horizontal line. The hover readout shows its time, frequency and level, so you can tell the line itself (louder) from the space beside it.
+2. Drag a box a little taller than the line, across only the time it's audible. Drag the box's edges to tighten it. If the editor asks you to widen the selection, make it taller, longer or both, as the message says: it needs a minimum height and a minimum length.
+3. Reduce at −24 to −40 dB. Press **Play** and compare with **Original**. Then press **Removed**: if you hear only the whistle, the box was right; if you hear notes of the music too, make the box tighter and try again.
 
 Try it on _Glasshouse_: press **Find the whistle**.
 
@@ -72,7 +72,8 @@ Try it on _Glasshouse_: press **Find the whistle**.
 
 - **Tight boxes sound better.** Everything inside the box changes, including parts of sounds you wanted to keep.
 - **Gentle first.** Start around −20 dB and go stronger only if you need to. Strong edits are more likely to leave a hollow or ringing sound.
-- **Listen, don't just look.** The picture has limited detail. Applying an edit pauses playback, so press **Play**, then switch between **Original** and **Edited** while it plays, ideally on headphones.
+- **Listen, don't just look.** The picture has limited detail. Applying an edit pauses playback, so press **Play**, then switch between **Original** and **Edited** while it plays, ideally on headphones. <kbd>C</kbd> cycles through the views without touching the mouse.
+- **Check what you removed.** **Removed** plays the difference between the original and your edit. It is the quickest way to hear whether a box also caught something you wanted to keep.
 - **Stack edits.** Each edit is a separate box. You can apply up to 12 per clip, and undo any time.
 - **Very small boxes are refused.** The editor needs at least about two frequency steps and one analysis window (around 0.09 seconds at 24 kHz) to make an audible change. It tells you if your box is too small.
 
@@ -88,15 +89,17 @@ Try it on _Glasshouse_: press **Find the whistle**.
 | Action                 | How                                                                                                 |
 | ---------------------- | --------------------------------------------------------------------------------------------------- |
 | Play or pause          | <kbd>Space</kbd>, unless a button, link, slider or text field has focus                             |
+| Compare                | <kbd>C</kbd> cycles Original, Edited and Removed, skipping any view that has nothing to play        |
+| Adjust the box         | Drag an edge or corner of the selection; the pointer changes to a resize arrow over them            |
 | Undo                   | <kbd>Ctrl</kbd>+<kbd>Z</kbd> (<kbd>⌘</kbd>+<kbd>Z</kbd> on a Mac)                                   |
 | Redo                   | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> (<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> on a Mac) |
 | Clear the selection    | <kbd>Escape</kbd> while the spectrogram has focus                                                   |
 | Jump to a moment       | Arrow keys on the waveform, or click or drag it                                                     |
 | Select without a mouse | **Precise selection** and its four number fields                                                    |
 
-The play, undo and redo shortcuts pause while the **How it works** dialog is open, and while a text field or slider has focus (so arrow keys and typing work normally there). Space also doesn't toggle playback while a button or link has focus.
+The play, compare, undo and redo shortcuts pause while the **How it works** dialog is open, and while a text field or slider has focus (so arrow keys and typing work normally there). Space also doesn't toggle playback while a button or link has focus.
 
-On a phone or tablet, drag on the spectrogram with one finger. The layout stacks into a single column and the controls are sized for fingers.
+On a phone or tablet, drag on the spectrogram with one finger, and drag near an edge of the box to adjust it; the grab zone is wider for touch. The layout stacks into a single column and the controls are sized for fingers.
 
 ## Files and limits
 

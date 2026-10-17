@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeClip, processClip, validateClip } from './engine';
-import { createDemo, DEMOS } from './demos';
+import { createDemo, demoOverview, DEMOS } from './demos';
 import { fft } from './fft';
 import { FFT_SIZE, HANN, HOP_SIZE, transformChannels } from './stft';
 import { encodeWav } from './wav';
@@ -274,6 +274,38 @@ describe('spectral processing', () => {
       largestStep = Math.max(largestStep, Math.abs(output[i] - output[i - 1]));
     expect(largestStep).toBeLessThan(0.1);
   });
+  it('returns the removed sound as the exact difference, analyzed from its own samples', () => {
+    const whistle = tone(1500);
+    const bass = tone(375);
+    const source = clip([combine(whistle, bass), combine(bass, whistle)]);
+    const result = processClip(source, [{ ...reduction, gainDb: -60 }]);
+    expect(result.removed.channels).toHaveLength(2);
+    for (let channel = 0; channel < 2; channel++) {
+      expect(result.removed.channels[channel]).toHaveLength(whistle.length);
+      let error = 0;
+      for (let i = 0; i < whistle.length; i++)
+        error = Math.max(
+          error,
+          Math.abs(
+            result.removed.channels[channel][i] -
+              Math.fround(source.channels[channel][i] - result.channels[channel][i]),
+          ),
+        );
+      expect(error).toBe(0);
+    }
+    // The removed signal is the whistle, not the bass: it contains what left the output.
+    expect(amplitude(result.removed.channels[0], 1500) / amplitude(whistle, 1500)).toBeCloseTo(
+      1,
+      2,
+    );
+    expect(amplitude(result.removed.channels[0], 375) / amplitude(bass, 375)).toBeLessThan(0.01);
+    expect(result.removed.analysis).toEqual(
+      analyzeClip({ ...source, channels: result.removed.channels }),
+    );
+    const untouched = processClip(source, []);
+    expect(untouched.removed.channels[0].every((value) => value === 0)).toBe(true);
+    expect(untouched.removed.analysis.stats.peak).toBe(0);
+  });
   it('recomputes analysis from reconstructed samples', () => {
     const input = clip([tone(1500)]);
     const result = processClip(input, [reduction]);
@@ -405,6 +437,25 @@ describe('original generated examples', () => {
     expect(analysis.stats.rms).toBeGreaterThan(0.03);
     expect(demo.target.endTime).toBeLessThanOrEqual(12);
     expect(demo.description).toContain('generated example');
+  });
+  it.each(DEMOS)('$name card overview is the real peak of each time slice', (demo) => {
+    const overview = demoOverview(demo.id, 24);
+    const { channels } = createDemo(demo.id);
+    expect(overview).toHaveLength(24);
+    const sliceLength = channels[0].length / 24;
+    overview.forEach((value, bucket) => {
+      let peak = 0;
+      for (const channel of channels)
+        for (
+          let i = Math.floor(bucket * sliceLength);
+          i < Math.floor((bucket + 1) * sliceLength);
+          i++
+        )
+          peak = Math.max(peak, Math.abs(channel[i]));
+      expect(value).toBe(peak);
+    });
+    expect(Math.max(...overview)).toBeLessThan(0.95);
+    expect(new Set(overview).size).toBeGreaterThan(1);
   });
   it('removes the Glasshouse whistle with its suggested selection', () => {
     const source = createDemo('melody');

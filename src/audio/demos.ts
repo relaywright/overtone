@@ -172,6 +172,24 @@ function drift(left: Float32Array, right: Float32Array): void {
   }
 }
 
+/**
+ * A small real overview of an example for its card: the loudest absolute sample in each
+ * of `buckets` equal time slices, so the card art is the sound itself rather than decoration.
+ */
+export function demoOverview(id: DemoId, buckets: number): Float32Array {
+  const { channels } = createDemo(id);
+  const length = channels[0].length;
+  const overview = new Float32Array(buckets);
+  for (const channel of channels) {
+    for (let i = 0; i < length; i++) {
+      const bucket = Math.min(buckets - 1, Math.floor((i * buckets) / length));
+      const value = Math.abs(channel[i]);
+      if (value > overview[bucket]) overview[bucket] = value;
+    }
+  }
+  return overview;
+}
+
 export function createDemo(id: DemoId): AudioClip {
   const demo = DEMOS.find((item) => item.id === id);
   if (!demo) throw new Error('Choose one of the three generated examples.');

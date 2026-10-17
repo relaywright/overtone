@@ -12,6 +12,7 @@ The editor performs deterministic digital signal processing. It does not use an 
 - Every render starts from the source samples. Undoing an edit removes its mask; it does not attempt to reverse an already degraded render.
 - Edits combine as multiplicative gains in one spectral pass. Reordering these gain masks does not change the mathematical result.
 - The worker returns both rendered channels and analysis derived from those channels. The interface does not display a painted-over original as an edited result.
+- The worker also returns the **removed** signal: for every sample, the source value minus the rendered value, in 32-bit float arithmetic, with its own analysis. Because the render is linear in the input, this is exactly the sound the masks took away, including any feathering, leakage or artifacts they introduced. The studio's **Removed** view plays and draws that signal. It is a check on the edit, not a separate source estimate, and it carries the same resolution limits as the edit itself.
 
 ## Analysis and reconstruction
 
@@ -63,4 +64,4 @@ The JSON recipe records the edit settings so a reviewer can inspect the operatio
 
 ## Verification
 
-The engine tests check FFT reconstruction, unedited STFT reconstruction including endpoints, source length and channel preservation, measured tone attenuation, locality of a timed edit, input validation, and PCM WAV layout. Browser tests exercise the controls, history, imports, exports, comparison playback, responsive layout, and accessibility checks. These establish specific behaviors; they do not promise artifact-free results on all recordings.
+The engine tests check FFT reconstruction, unedited STFT reconstruction including endpoints, source length and channel preservation, measured tone attenuation, locality of a timed edit, that the removed signal is the exact difference and contains the reduced tone rather than the retained one, input validation, and PCM WAV layout. Browser tests exercise the controls, history, imports, exports, comparison playback, responsive layout, and accessibility checks. These establish specific behaviors; they do not promise artifact-free results on all recordings.

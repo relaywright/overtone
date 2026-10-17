@@ -5,6 +5,8 @@ export function usePlayback(onError: (message: string) => void) {
   const supported = typeof AudioContext === 'function' && typeof AudioBuffer === 'function';
   const context = useRef<AudioContext | null>(null);
   const gain = useRef<GainNode | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const levelSamples = useRef<Float32Array<ArrayBuffer> | null>(null);
   const source = useRef<AudioBufferSourceNode | null>(null);
   const buffer = useRef<AudioBuffer | null>(null);
   const offset = useRef(0);
@@ -24,8 +26,24 @@ export function usePlayback(onError: (message: string) => void) {
       gain.current = context.current.createGain();
       gain.current.gain.value = volumeRef.current;
       gain.current.connect(context.current.destination);
+      // The meter taps the sound before the volume control: it reports the audio's own
+      // level, so turning the monitor down does not make an edit look quieter.
+      analyser.current = context.current.createAnalyser();
+      analyser.current.fftSize = 1024;
+      levelSamples.current = new Float32Array(analyser.current.fftSize);
     }
     return context.current;
+  }, []);
+  /** Peak of the most recent output block, 0 to 1, or 0 when nothing is playing. */
+  const readLevel = useCallback(() => {
+    if (!playingRef.current || !analyser.current || !levelSamples.current) return 0;
+    analyser.current.getFloatTimeDomainData(levelSamples.current);
+    let peak = 0;
+    for (const value of levelSamples.current) {
+      const magnitude = Math.abs(value);
+      if (magnitude > peak) peak = magnitude;
+    }
+    return peak;
   }, []);
   const currentTime = useCallback(() => {
     const duration = buffer.current?.duration ?? 0;
@@ -76,6 +94,7 @@ export function usePlayback(onError: (message: string) => void) {
       node.buffer = buffer.current;
       node.loop = loopRef.current;
       node.connect(gain.current!);
+      if (analyser.current) node.connect(analyser.current);
       source.current = node;
       started.current = ctx.currentTime;
       playingRef.current = true;
@@ -197,5 +216,6 @@ export function usePlayback(onError: (message: string) => void) {
     setVolume,
     setClip,
     getContext,
+    readLevel,
   };
 }

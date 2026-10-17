@@ -255,6 +255,10 @@
   margin: 0 5px;
   color: #858f84;
 }
+.spectrum-hover-readout > i {
+  font-style: normal;
+  color: #ffd79a;
+}
 
 .spectrum-caption {
   display: flex;

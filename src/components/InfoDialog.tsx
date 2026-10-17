@@ -66,9 +66,11 @@ export function InfoDialog({ open, onClose }: { open: boolean; onClose: () => vo
           <div>
             <h3>Draw a box, then edit it</h3>
             <p>
-              Drag a rectangle, or set its exact time and frequency below the spectrum. Reduce makes
-              that region quieter. Isolate keeps that region and suppresses everything outside it.
-              Undo always returns to your previous edit.
+              Drag a rectangle, then drag its edges to adjust it, or set its exact time and
+              frequency below the spectrum. Reduce makes that region quieter. Isolate keeps that
+              region and suppresses everything outside it. Removed plays only what your edits took
+              away, so you can check nothing else went with it. Undo always returns to your previous
+              edit.
             </p>
           </div>
         </div>

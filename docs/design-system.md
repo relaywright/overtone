@@ -21,7 +21,7 @@ Max width 1560px; 40px desktop gutters; 20px mobile. Main workspace has a wide s
 
 ## Interaction
 
-Clear hover/active/focus. Amber selected region with corner handles. Live playhead, subdued moving meter only during playback. No autoplay. State changes take 150–220ms. Reduced motion removes ambient and entrance movement. Canvas stays backed by numeric controls and plain text selection summary.
+Clear hover/active/focus. Amber selected region with corner handles; its edges and corners are live grab zones with resize cursors, never decoration only. Live playhead, subdued output meter in the transport that moves only during playback and is measured, not animated. Three-way comparison (Original, Edited, Removed) in one segmented control. No autoplay. State changes take 150–220ms. Reduced motion removes ambient and entrance movement. Canvas stays backed by numeric controls and plain text selection summary. The hover readout shows measured time, frequency and level.
 
 ## Responsive
 
@@ -29,4 +29,4 @@ Below 1000px inspector stacks. Below 600px controls wrap, title shrinks, samples
 
 ## Avoid
 
-No rainbow dashboard, giant marketing section before the studio, fake telemetry, vague AI claims, purple UI accents, neon glows on every border, or decoration that resembles controls.
+No rainbow dashboard, giant marketing section before the studio, fake telemetry, vague AI claims, purple UI accents, neon glows on every border, or decoration that resembles controls. Example card art is the measured shape of the example, not a drawn pattern.
