@@ -43,24 +43,34 @@ A region has a start time, end time, low frequency, and high frequency. Its edge
 
 Feathering reduces abrupt transitions but cannot eliminate every artifact. A modified STFT is not necessarily the transform of any exact time-domain signal; reconstruction is an approximation to the requested modified spectrum. [SciPy documents this distinction](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.istft.html).
 
+## Hearing what was removed
+
+The **Removed** view is the original minus the edited output, computed sample by sample on the rendered channels:
+
+```text
+removed[n] = original[n] - edited[n]
+```
+
+Because every render starts from the source samples, this difference is exact for the current edit list, not an estimate. After a reduction it contains the attenuated part of the selected region, scaled by `1 - 10^(gain/20)` at the center of the mask and fading with the mask's edges; after an isolation it contains everything outside the kept region. Its spectrogram and waveform are computed from that difference signal, so listening to it is the most direct check that an edit took out only the intended sound. Export always saves the edited sound, whichever view is showing.
+
 ## Import, playback, and export
 
 The browser's audio decoder reads supported local files. The studio accepts files up to 30 MB, between 0.1 and 60 seconds, with one or two channels. It checks file size first, then reads local media metadata to check duration before requesting a full PCM decode. This rejects overlong compressed files before expanding their samples into memory. Missing, invalid, or unreadable duration metadata produces an error; the metadata check times out after twelve seconds. Duration and channel count are checked again on the decoded buffer. It allows up to twelve region edits per clip. Codec support depends on the browser. Decoding can resample a recording to the audio context's sample rate, so the displayed decoded sample rate is authoritative. [MDN describes this behavior](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData).
 
 WAV export writes interleaved, signed 16-bit PCM with the rendered channel count and sample rate. Floating-point samples are rounded and clamped to the representable range. There is no automatic normalization. PCM conversion is quantization, and values beyond full scale clip; it is not a lossless copy of arbitrary imported formats. The output volume control is for monitoring, not a mastering stage.
 
-The JSON recipe records the edit settings so a reviewer can inspect the operation, and **Load recipe** applies them again. Loading checks the format, the edit count and every edit's bounds against the current sound before anything is processed. Rendering is deterministic, so a recipe loaded onto the same decoded source produces the same samples and the same WAV; a browser test verifies the exported bytes match. A recipe does not embed a recording or replace the need for the same decoded source audio. Browser decoding and resampling can differ between environments, so a recipe saved with a different sample rate, length or transform setting is applied with a warning that the result may not match.
+The JSON recipe records the edit settings so a reviewer can inspect the operation, and **Load recipe** applies them again. For the generated examples the same settings also fit in the page address: **Copy link** writes them after `#` as base64url-encoded JSON (`{v, d, e}` for the format version, example id and a compact list of edits), and opening such a link loads the example and applies the edits through the same bounds checks as a recipe. The browser never sends the fragment to a server. Since the examples are synthesized deterministically, a link reproduces the same samples on any device. Loading checks the format, the edit count and every edit's bounds against the current sound before anything is processed. Rendering is deterministic, so a recipe loaded onto the same decoded source produces the same samples and the same WAV; a browser test verifies the exported bytes match. A recipe does not embed a recording or replace the need for the same decoded source audio. Browser decoding and resampling can differ between environments, so a recipe saved with a different sample rate, length or transform setting is applied with a warning that the result may not match.
 
 ## Limits and tradeoffs
 
 - Two sounds in the same time/frequency region will both change. A mask cannot know which sound a listener intended to remove.
 - Transform resolution trades time precision for frequency precision. Edits can soften transients, ring, or slightly affect audio around a rectangle's boundary.
 - Narrow selections may be dominated by their feathered edges and nearby frequency-bin leakage.
-- The spectrogram is a visualization with finite resolution, not a calibrated measurement instrument.
+- The spectrogram is a visualization with finite resolution, not a calibrated measurement instrument. The note name in the hover readout is the equal-tempered pitch nearest to the pointer's frequency, with A4 at 440 Hz; it describes the pointer, not a detected pitch in the audio.
 - Very quiet content can fall below the display's color scale without being silent.
 - Long-form editing, source separation, multitrack mixing, pitch correction, and automatic noise profiling are outside the scope.
 - Audio and edit history live in memory. Download a WAV or recipe before closing or reloading the page.
 
 ## Verification
 
-The engine tests check FFT reconstruction, unedited STFT reconstruction including endpoints, source length and channel preservation, measured tone attenuation, locality of a timed edit, input validation, and PCM WAV layout. Browser tests exercise the controls, history, imports, exports, comparison playback, responsive layout, and accessibility checks. These establish specific behaviors; they do not promise artifact-free results on all recordings.
+The engine tests check FFT reconstruction, unedited STFT reconstruction including endpoints, source length and channel preservation, measured tone attenuation, locality of a timed edit, the exactness and content of the removed difference, share-link encoding and validation, note naming, input validation, and PCM WAV layout. Browser tests exercise the controls, history, imports, exports, comparison playback including the Removed view, share links, real thumbnails, responsive layout, and accessibility checks. These establish specific behaviors; they do not promise artifact-free results on all recordings.

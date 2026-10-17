@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import type { Selection, SpectralEdit, SpectrogramData } from '../audio/types';
+import { noteName } from '../audio/pitch';
+import { paintSpectrogram } from './palette';
 import './spectrum.css';
 
 interface SpectrogramProps {
@@ -18,29 +20,6 @@ interface Point {
 }
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const colorStops = [
-  [0, 9, 11, 11],
-  [0.16, 23, 18, 25],
-  [0.32, 53, 28, 45],
-  [0.48, 115, 42, 39],
-  [0.64, 195, 76, 33],
-  [0.8, 250, 143, 54],
-  [0.92, 255, 202, 109],
-  [1, 255, 244, 208],
-];
-
-// A fixed dBFS scale keeps the meaning of a color stable between edits and clips.
-const heatPalette = Array.from({ length: 256 }, (_, index) => {
-  const position = index / 255;
-  const rightIndex = colorStops.findIndex((stop) => stop[0] >= position);
-  const right = colorStops[Math.max(1, rightIndex)];
-  const left = colorStops[Math.max(0, rightIndex - 1)];
-  const fraction = (position - left[0]) / (right[0] - left[0]);
-  return [1, 2, 3].map((channel) =>
-    Math.round(left[channel] + (right[channel] - left[channel]) * fraction),
-  );
-});
-
 function frequencyLabel(hz: number) {
   if (hz >= 1000) return `${Number((hz / 1000).toFixed(hz >= 10000 ? 1 : 2))}k`;
   return `${Math.round(hz)}`;
@@ -144,18 +123,7 @@ export function Spectrogram({
     const bitmapContext = bitmap.getContext('2d');
     if (!bitmapContext) return;
     const pixels = bitmapContext.createImageData(data.frames, data.bins);
-    for (let frame = 0; frame < data.frames; frame++) {
-      for (let bin = 0; bin < data.bins; bin++) {
-        const db = data.values[frame * data.bins + bin];
-        const paletteIndex = Math.round(clamp((Number.isFinite(db) ? db + 96 : 0) / 96) * 255);
-        const color = heatPalette[paletteIndex];
-        const offset = ((data.bins - 1 - bin) * data.frames + frame) * 4;
-        pixels.data[offset] = color[0];
-        pixels.data[offset + 1] = color[1];
-        pixels.data[offset + 2] = color[2];
-        pixels.data[offset + 3] = 255;
-      }
-    }
+    paintSpectrogram(pixels, data.values, data.frames, data.bins);
     bitmapContext.putImageData(pixels, 0, 0);
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
@@ -361,7 +329,8 @@ export function Spectrogram({
           {usable && hover && !dragging && (
             <div className="spectrum-hover-readout" aria-hidden="true">
               {(hover.x * duration).toFixed(2)} s <span>/</span>{' '}
-              {frequencyLabel(frequencyAt(hover.y))} Hz
+              {frequencyLabel(frequencyAt(hover.y))} Hz <span>/</span>{' '}
+              {noteName(frequencyAt(hover.y))}
             </div>
           )}
           {!data && (

@@ -133,7 +133,7 @@ svg {
 }
 .header-tag {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1.8px;
   color: #9ba597;
   margin-right: auto;
@@ -152,7 +152,7 @@ svg {
   background: none;
   border: 0;
   padding: 10px 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   min-height: 38px;
 }
@@ -163,7 +163,7 @@ svg {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 .intro {
@@ -175,7 +175,7 @@ svg {
 }
 .eyebrow {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.6px;
   font-weight: 400;
   color: var(--muted);
@@ -206,11 +206,11 @@ h1 span {
   margin-left: 14px;
 }
 .intro-aside {
-  max-width: 280px;
+  max-width: 370px;
   padding-bottom: 4px;
 }
 .intro-aside p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.75;
   color: var(--muted);
   margin-bottom: 12px;
@@ -218,9 +218,10 @@ h1 span {
 .privacy-note {
   display: flex;
   align-items: center;
+  white-space: nowrap;
   gap: 7px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   color: #b8c7ae;
 }
 .examples {
@@ -236,7 +237,7 @@ h1 span {
   gap: 7px;
 }
 .examples-label > span:last-child {
-  font-size: 10px;
+  font-size: 12px;
   color: #919c8c;
 }
 .example-options {
@@ -266,13 +267,13 @@ h1 span {
 }
 .example strong {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
 }
 .example small {
   display: block;
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.5;
   color: #a4ad9d;
   margin-top: 4px;
@@ -280,38 +281,33 @@ h1 span {
 .sample-number {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   color: #a8a99a;
   align-self: flex-start;
 }
-.sample-art {
-  height: 43px;
-  width: 54px;
-  display: flex;
-  gap: 2px;
-  align-items: center;
+.thumbnail {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 44px;
   flex-shrink: 0;
   overflow: hidden;
+  border: 1px solid #2c322c;
+  border-radius: 3px;
+  background: #090b0b;
 }
-.sample-art i {
+.thumbnail-canvas {
   display: block;
-  width: 2px;
-  background: #b79f73;
-  opacity: 0.6;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.35s;
 }
-.active .sample-art i {
-  background: var(--accent);
-  opacity: 0.85;
+.thumbnail--ready .thumbnail-canvas {
+  opacity: 1;
 }
-.sample-art-1 i {
-  width: 3px;
-  background: #9eab8d;
-}
-.sample-art-2 {
-  transform: rotate(0);
-}
-.sample-art-2 i {
-  background: #acb2a0;
+.example.active .thumbnail {
+  border-color: #7d663d;
 }
 .studio {
   border: 1px solid #3b4137;
@@ -342,7 +338,7 @@ h1 span {
   flex-shrink: 0;
 }
 .file-identity strong {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -350,7 +346,7 @@ h1 span {
 }
 .file-badge {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.7px;
   background: #262c23;
   border: 1px solid #394332;
@@ -368,7 +364,7 @@ h1 span {
   border: 1px solid #454d3d;
   background: #252b22;
   padding: 10px 14px;
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 500;
   border-radius: 5px;
 }
@@ -390,6 +386,8 @@ h1 span {
 }
 .sound-workspace {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   background: #111411;
 }
 .visual-toolbar {
@@ -405,7 +403,7 @@ h1 span {
   align-items: center;
   gap: 8px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1px;
   color: var(--muted);
 }
@@ -414,7 +412,7 @@ h1 span {
 }
 .tag {
   color: #9aa491;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0;
   border: 1px solid #3a4234;
   padding: 3px 5px;
@@ -433,7 +431,7 @@ h1 span {
 .compare button {
   border: 0;
   background: transparent;
-  font-size: 10px;
+  font-size: 12px;
   color: #a6b29d;
   padding: 8px 12px;
   display: flex;
@@ -481,8 +479,17 @@ h1 span {
 }
 .spectrum-wrap {
   position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 300px;
   background: #080b09;
+}
+.spectrum-wrap > .spectrum,
+.spectrum-wrap .spectrum-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .spectrum-wrap.is-busy > figure {
   opacity: 0.35;
@@ -509,26 +516,12 @@ h1 span {
   padding: 8px 19px 14px;
   background: #0d100d;
   color: #99a58f;
-  font-size: 9px;
+  font-size: 11px;
 }
 .spectrum-footer > span {
   display: flex;
   align-items: center;
   gap: 7px;
-}
-.intensity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 7px;
-  letter-spacing: 0.7px;
-}
-.intensity i {
-  width: 62px;
-  height: 4px;
-  background: linear-gradient(90deg, #151113, #573048, #a8573a, #f4a347, #ffe6a1);
-  border-radius: 1px;
 }
 .waveform-row {
   display: flex;
@@ -586,12 +579,12 @@ h1 span {
   font-family: var(--mono);
 }
 .time-readout strong {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: #ecefe8;
 }
 .time-readout > span {
-  font-size: 10px;
+  font-size: 11px;
   color: #9faa96;
 }
 .volume-control {
@@ -605,13 +598,13 @@ h1 span {
   width: 74px;
 }
 .space-hint {
-  font-size: 9px;
+  font-size: 10px;
   color: #9da993;
   white-space: nowrap;
 }
 .space-hint kbd {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 9px;
   border: 1px solid #47503f;
   padding: 3px 5px;
   border-radius: 3px;
@@ -632,7 +625,7 @@ h1 span {
   border: 0;
   background: transparent;
   color: #abb6a2;
-  font-size: 10px;
+  font-size: 12px;
   min-height: 32px;
   padding: 0;
 }
@@ -641,7 +634,7 @@ h1 span {
 }
 .selection-summary {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10.5px;
   color: #a7b19e;
 }
 .precision-inputs {
@@ -651,7 +644,7 @@ h1 span {
   padding: 4px 19px 16px;
 }
 .precision-inputs label {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--muted);
 }
 .precision-inputs label > div {
@@ -670,10 +663,10 @@ h1 span {
   border: 0;
   color: var(--text);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
 }
 .precision-inputs label > div > span {
-  font-size: 9px;
+  font-size: 10px;
   padding-right: 8px;
   color: #a5ad9b;
 }
@@ -690,7 +683,7 @@ h1 span {
   margin-bottom: 16px;
 }
 .inspector-heading .eyebrow {
-  font-size: 8px;
+  font-size: 9.5px;
   letter-spacing: 1.25px;
   color: #b9c2ad;
 }
@@ -698,13 +691,13 @@ h1 span {
   background: #b7cda2;
 }
 .inspector h2 {
-  font-size: 24px;
+  font-size: 26px;
   letter-spacing: -0.7px;
   line-height: 1.2;
   font-weight: 400;
 }
 .inspector-copy {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   color: #b0bba5;
   margin-top: 14px;
@@ -721,7 +714,7 @@ h1 span {
   text-align: left;
   min-height: 40px;
   padding: 9px 11px;
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 17px;
 }
 .target-button svg:last-child {
@@ -734,17 +727,17 @@ h1 span {
 }
 .section-label {
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 9.5px;
   letter-spacing: 0.65px;
   color: #aab79d;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 20px;
+  min-height: 26px;
   gap: 10px;
 }
 .section-label strong {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--accent);
   letter-spacing: 0;
@@ -767,7 +760,7 @@ h1 span {
   padding: 12px 10px;
   background: #13180f;
   border: 1px dashed #46503a;
-  min-height: 67px;
+  min-height: 102px;
   margin: 8px 0 18px;
   border-radius: 4px;
   color: #9fad92;
@@ -778,13 +771,13 @@ h1 span {
 }
 .selection-card strong {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.5;
 }
 .selection-card small {
   display: block;
-  font-size: 9px;
+  font-size: 10.5px;
   line-height: 1.6;
   margin-top: 3px;
   color: #98a98a;
@@ -800,7 +793,7 @@ h1 span {
 }
 .selection-card.has-selection strong {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 14px;
 }
 .reduction-range {
   display: block;
@@ -815,7 +808,7 @@ h1 span {
   justify-content: space-between;
 }
 .reduction-range small {
-  font-size: 8px;
+  font-size: 9.5px;
   color: #a3b294;
 }
 .primary-button {
@@ -823,7 +816,7 @@ h1 span {
   background: var(--accent);
   color: #281b0c;
   border-color: var(--accent);
-  font-size: 11px;
+  font-size: 12.5px;
   min-height: 42px;
 }
 .primary-button svg:last-child {
@@ -838,11 +831,11 @@ h1 span {
   background: #252e1f;
   border-color: #48523d;
   color: #cbd6bd;
-  font-size: 11px;
+  font-size: 12.5px;
 }
 .edit-hint {
   text-align: center;
-  font-size: 9px;
+  font-size: 11px;
   color: #a0b18f;
   line-height: 1.65;
   margin-top: 12px;
@@ -856,9 +849,11 @@ h1 span {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 9px;
+  font-size: 11px;
   color: #a9b99a;
+  min-height: 127px;
   margin: 12px 0 4px;
+  align-items: flex-start;
 }
 .history-ring {
   width: 7px;
@@ -867,7 +862,7 @@ h1 span {
   border-radius: 50%;
 }
 .reset-button {
-  font-size: 9px;
+  font-size: 11px;
   min-height: 30px;
   padding: 9px 0 0;
   color: #a0ae93;
@@ -876,7 +871,7 @@ h1 span {
   list-style: none;
   padding: 0;
   margin: 9px 0 0;
-  max-height: 134px;
+  height: 134px;
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #576149 transparent;
@@ -890,7 +885,7 @@ h1 span {
 }
 .edit-history li > span {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   color: #9ba88e;
 }
 .edit-history li > svg {
@@ -900,14 +895,14 @@ h1 span {
 }
 .edit-history li strong {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: #d5dfc9;
 }
 .edit-history li small {
   display: block;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 9.5px;
   color: #9eae8f;
   margin-top: 3px;
 }
@@ -921,7 +916,7 @@ h1 span {
   min-height: 37px;
   padding: 10px 19px;
   font-family: var(--mono);
-  font-size: 8px;
+  font-size: 10px;
   color: #a8b999;
 }
 .status-left {
@@ -951,31 +946,40 @@ h1 span {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 32px;
   padding: 29px 0 33px;
   border-bottom: 1px solid var(--border);
 }
+.export-row > div:first-child {
+  flex: 1;
+  min-width: 0;
+  max-width: 640px;
+}
 .export-row .eyebrow {
-  font-size: 8px;
+  font-size: 10px;
   color: #aeb7a8;
 }
 .export-row p {
-  font-size: 12px;
+  font-size: 13.5px;
   color: #9da994;
   margin-top: 7px;
 }
 .export-actions {
   display: flex;
   align-items: center;
-  gap: 28px;
+  flex-shrink: 0;
+  gap: 26px;
+}
+.export-actions > button {
+  white-space: nowrap;
 }
 .recipe-button {
-  font-size: 10px;
+  font-size: 12px;
   color: #b1bba7;
   min-height: 44px;
 }
 .export-button {
-  font-size: 12px;
+  font-size: 13px;
   background: #e6eadf;
   color: #20291a;
   border: 0;
@@ -986,7 +990,7 @@ h1 span {
   border-left: 1px solid #aab3a1;
   padding-left: 10px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   color: #4c5a41;
 }
 .footnote {
@@ -1002,15 +1006,15 @@ h1 span {
 }
 .step-index {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   color: #9ba68e;
   padding-top: 3px;
 }
 .footnote p {
-  font-size: 10px;
+  font-size: 12.5px;
   color: #94a087;
   line-height: 1.8;
-  max-width: 280px;
+  max-width: 330px;
 }
 .footnote strong {
   display: block;
@@ -1024,14 +1028,14 @@ h1 span {
   gap: 25px;
   border-top: 1px solid var(--border);
   padding: 20px 0 28px;
-  font-size: 9px;
+  font-size: 11px;
   color: #98a78a;
 }
 .site-footer a {
   color: #c9d3be;
 }
 .site-footer > span:first-child {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.4px;
 }
 .footer-divider {
@@ -1039,7 +1043,7 @@ h1 span {
   color: #59664b;
 }
 .site-footer .text-button {
-  font-size: 9px;
+  font-size: 11px;
   color: #a8b69a;
 }
 .error-message {
@@ -1052,7 +1056,7 @@ h1 span {
   padding: 12px 16px;
   margin-top: 14px;
   border-radius: 5px;
-  font-size: 12px;
+  font-size: 13px;
 }
 .error-message > .icon-button {
   margin-left: auto;
@@ -1060,7 +1064,7 @@ h1 span {
 }
 .limit-note {
   color: #efbc7e !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   line-height: 1.6;
 }
 .edit-controls .limit-note {
@@ -1085,7 +1089,7 @@ h1 span {
   font-size: 35px;
 }
 .drop-overlay p {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
 }
 .sr-only {
@@ -1165,7 +1169,7 @@ dialog::backdrop {
 }
 .explainer p,
 .method-note p {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.8;
   color: #b6c7a6;
   margin-top: 7px;
@@ -1181,7 +1185,7 @@ dialog::backdrop {
   justify-content: space-between;
   gap: 14px;
   padding-top: 23px;
-  font-size: 10px;
+  font-size: 12px;
   color: #a9bb98;
 }
 .dialog-links {
@@ -1230,10 +1234,10 @@ dialog::backdrop {
     padding-bottom: 47px;
   }
   .intro-aside {
-    max-width: 305px;
+    max-width: 400px;
   }
   .intro-aside p {
-    font-size: 13px;
+    font-size: 15px;
   }
   .studio-grid {
     grid-template-columns: minmax(0, 1fr) 305px;
@@ -1253,7 +1257,7 @@ dialog::backdrop {
     padding: 0 30px;
   }
   .header-tag {
-    font-size: 8px;
+    font-size: 10px;
     margin-left: 0;
   }
   .intro {
@@ -1271,7 +1275,7 @@ dialog::backdrop {
     margin-left: 0;
   }
   .intro-aside {
-    max-width: 255px;
+    max-width: 330px;
   }
   .examples {
     grid-template-columns: 1fr;
@@ -1282,7 +1286,7 @@ dialog::backdrop {
     justify-content: space-between;
   }
   .examples-label > span:last-child {
-    font-size: 9px;
+    font-size: 11px;
   }
   .space-hint {
     display: none;
@@ -1352,25 +1356,27 @@ dialog::backdrop {
   }
   .empty-history {
     display: inline-flex;
+    min-height: 0;
     margin: 4px 20px 0 0;
   }
   .reset-button {
     display: inline-flex;
   }
   .edit-history ol {
+    height: auto;
     max-height: 85px;
   }
   .space-hint {
     display: block;
   }
   .intro-aside {
-    max-width: 240px;
+    max-width: 320px;
   }
   .file-badge {
-    font-size: 8px;
+    font-size: 9px;
   }
   .signal-meta {
-    font-size: 8px;
+    font-size: 10px;
     gap: 12px;
   }
   .footnote {
@@ -1407,7 +1413,7 @@ dialog::backdrop {
     gap: 17px;
   }
   .site-header .text-button {
-    font-size: 10px;
+    font-size: 12px;
   }
   .source-link span {
     display: none;
@@ -1419,7 +1425,7 @@ dialog::backdrop {
     gap: 19px;
   }
   .intro-eyebrow {
-    font-size: 8px;
+    font-size: 9px;
     margin-bottom: 14px;
   }
   h1 {
@@ -1430,19 +1436,19 @@ dialog::backdrop {
   .intro-aside {
     max-width: none;
     display: flex;
-    gap: 20px;
-    align-items: end;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
     width: 100%;
   }
   .intro-aside p {
-    font-size: 10px;
+    font-size: 13px;
     line-height: 1.7;
     margin: 0;
-    max-width: 200px;
+    max-width: 360px;
   }
   .privacy-note {
-    font-size: 8px;
+    font-size: 9px;
     gap: 5px;
     white-space: nowrap;
     padding-bottom: 2px;
@@ -1455,10 +1461,10 @@ dialog::backdrop {
     gap: 12px;
   }
   .examples-label > .eyebrow {
-    font-size: 8px;
+    font-size: 9px;
   }
   .examples-label > span:last-child {
-    font-size: 8px;
+    font-size: 10px;
   }
   .example-options {
     gap: 6px;
@@ -1468,26 +1474,26 @@ dialog::backdrop {
     min-height: 98px;
     padding: 10px 9px;
   }
-  .sample-art {
-    height: 24px;
-    margin-bottom: 7px;
-    width: 45px;
-  }
-  .sample-art i {
-    transform: scaleY(0.6);
+  .thumbnail {
+    width: 100%;
+    height: 34px;
+    margin-bottom: 8px;
   }
   .sample-number {
     position: absolute;
-    top: 10px;
-    right: 8px;
-    font-size: 7px;
+    top: 13px;
+    right: 12px;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    background: #090b0bd9;
   }
   .example strong {
-    font-size: 10px;
+    font-size: 12px;
     white-space: normal;
   }
   .example small {
-    font-size: 8px;
+    font-size: 10px;
     line-height: 1.35;
   }
   .studio-topline {
@@ -1501,20 +1507,20 @@ dialog::backdrop {
     row-gap: 4px;
   }
   .file-identity strong {
-    font-size: 10px;
+    font-size: 12px;
     max-width: 170px;
   }
   .file-identity > svg {
     width: 14px;
   }
   .file-badge {
-    font-size: 6px;
+    font-size: 8px;
     padding: 3px 4px;
     letter-spacing: 0.25px;
     margin-left: 21px;
   }
   .import-button {
-    font-size: 9px;
+    font-size: 11px;
     padding: 8px 9px;
     gap: 6px;
     min-height: 38px;
@@ -1528,21 +1534,14 @@ dialog::backdrop {
     min-height: 57px;
   }
   .view-label {
-    font-size: 7px;
-    gap: 5px;
-    letter-spacing: 0.5px;
-  }
-  .view-label > svg {
-    width: 12px;
-  }
-  .tag {
     display: none;
   }
   .compare {
     padding: 2px;
+    margin-left: 0;
   }
   .compare button {
-    font-size: 9px;
+    font-size: 11px;
     padding: 7px 9px;
     min-height: 29px;
   }
@@ -1563,7 +1562,7 @@ dialog::backdrop {
   }
   .spectrum-footer {
     padding: 7px 12px 10px;
-    font-size: 8px;
+    font-size: 10px;
     gap: 8px;
     align-items: center;
   }
@@ -1575,20 +1574,13 @@ dialog::backdrop {
   .spectrum-footer > span svg {
     flex-shrink: 0;
   }
-  .intensity {
-    gap: 5px;
-    font-size: 6px;
-  }
-  .intensity i {
-    width: 28px;
-  }
   .waveform-row {
     padding: 9px 12px;
     gap: 10px;
     min-height: 62px;
   }
   .waveform-row > .eyebrow {
-    font-size: 6px;
+    font-size: 9px;
     letter-spacing: 0.5px;
   }
   .transport {
@@ -1607,10 +1599,10 @@ dialog::backdrop {
     gap: 6px;
   }
   .time-readout strong {
-    font-size: 12px;
+    font-size: 14px;
   }
   .time-readout > span {
-    font-size: 8px;
+    font-size: 10px;
   }
   .loop-button {
     min-width: 29px;
@@ -1634,11 +1626,11 @@ dialog::backdrop {
     flex-wrap: wrap;
   }
   .precision-toggle {
-    font-size: 9px;
+    font-size: 11px;
     gap: 5px;
   }
   .selection-summary {
-    font-size: 8px;
+    font-size: 9.5px;
   }
   .precision-inputs {
     padding: 6px 12px 15px;
@@ -1653,22 +1645,22 @@ dialog::backdrop {
     margin-bottom: 10px;
   }
   .inspector-heading .eyebrow {
-    font-size: 7px;
+    font-size: 9px;
     letter-spacing: 0.75px;
   }
   .inspector-heading > .tiny-dot {
     display: none;
   }
   .inspector h2 {
-    font-size: 21px;
+    font-size: 24px;
     letter-spacing: -0.6px;
   }
   .inspector-copy {
-    font-size: 10px;
+    font-size: 12.5px;
     line-height: 1.8;
   }
   .target-button {
-    font-size: 9px;
+    font-size: 11px;
     gap: 6px;
     padding: 8px;
     min-height: 42px;
@@ -1680,7 +1672,7 @@ dialog::backdrop {
     display: none;
   }
   .section-label {
-    font-size: 7px;
+    font-size: 9px;
     letter-spacing: 0.2px;
   }
   .selection-card {
@@ -1693,23 +1685,23 @@ dialog::backdrop {
     width: 15px;
   }
   .selection-card strong {
-    font-size: 9px;
+    font-size: 11px;
   }
   .selection-card small {
-    font-size: 8px;
+    font-size: 10px;
   }
   .selection-card.has-selection strong {
-    font-size: 10px;
+    font-size: 12px;
   }
   .reduction-range {
     margin-bottom: 12px;
   }
   .reduction-range small {
-    font-size: 7px;
+    font-size: 9px;
   }
   .primary-button,
   .isolate-button {
-    font-size: 9px;
+    font-size: 11.5px;
     gap: 7px;
     min-height: 41px;
     padding: 9px 8px;
@@ -1725,7 +1717,7 @@ dialog::backdrop {
     width: 14px;
   }
   .edit-hint {
-    font-size: 8px;
+    font-size: 10.5px;
   }
   .edit-history {
     margin-top: 15px;
@@ -1734,11 +1726,11 @@ dialog::backdrop {
     padding: 10px 12px;
     gap: 8px;
     flex-wrap: wrap;
-    font-size: 7px;
+    font-size: 9px;
     line-height: 1.6;
   }
   .signal-meta {
-    font-size: 7px;
+    font-size: 9px;
     gap: 12px;
     margin-left: 13px;
   }
@@ -1749,19 +1741,21 @@ dialog::backdrop {
     padding: 24px 0;
   }
   .export-row p {
-    font-size: 11px;
+    font-size: 12.5px;
   }
   .export-actions {
     width: 100%;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
+    gap: 6px 18px;
   }
   .export-button {
-    font-size: 11px;
+    flex-basis: 100%;
+    font-size: 12px;
     padding: 10px 14px;
   }
   .recipe-button {
-    font-size: 10px;
+    font-size: 11.5px;
   }
   .footnote {
     padding: 23px 0;
@@ -1773,7 +1767,7 @@ dialog::backdrop {
   }
   .footnote p {
     max-width: none;
-    font-size: 10px;
+    font-size: 12px;
   }
   .footnote strong {
     display: inline;
@@ -1783,10 +1777,10 @@ dialog::backdrop {
     padding: 20px 0;
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 8px;
+    font-size: 10px;
   }
   .site-footer > span:first-child {
-    font-size: 8px;
+    font-size: 10px;
     max-width: none;
   }
   .site-footer > span:nth-child(2) {
@@ -1797,7 +1791,7 @@ dialog::backdrop {
     min-height: 28px;
     width: 100%;
     justify-content: start;
-    font-size: 9px;
+    font-size: 11px;
   }
   .dialog-content {
     padding: 26px 21px;
@@ -1810,7 +1804,7 @@ dialog::backdrop {
   }
   .explainer p,
   .method-note p {
-    font-size: 11px;
+    font-size: 12.5px;
   }
   .dialog-footer {
     flex-direction: column;
@@ -1820,7 +1814,7 @@ dialog::backdrop {
     font-size: 24px;
   }
   .drop-overlay p {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 @media (max-width: 370px) {
@@ -1850,7 +1844,7 @@ dialog::backdrop {
     padding: 10px 7px;
   }
   .example strong {
-    font-size: 9px;
+    font-size: 11px;
   }
   .time-readout strong {
     font-size: 11px;
@@ -1862,7 +1856,7 @@ dialog::backdrop {
     display: none;
   }
   .selection-summary {
-    font-size: 7px;
+    font-size: 9px;
   }
   .site-footer > span:nth-child(2) {
     margin-left: 0;
@@ -1909,16 +1903,16 @@ dialog::backdrop {
   padding-top: 4px;
 }
 .spectrum-caption {
-  font-size: 9px;
+  font-size: 11px;
 }
 .spectrum-frequency-axis {
-  font-size: 9px;
+  font-size: 10.5px;
 }
 .spectrum-time-axis {
-  font-size: 9px;
+  font-size: 10.5px;
 }
 .waveform-label {
-  font-size: 8px;
+  font-size: 10px;
 }
 .waveform-track {
   height: 43px;
@@ -1927,7 +1921,9 @@ dialog::backdrop {
   min-height: 80px;
 }
 .studio-grid .spectrum-stage {
-  height: 300px;
+  flex: 1;
+  height: auto;
+  min-height: 300px;
 }
 @media (max-width: 680px) {
   .site-header {
@@ -1940,13 +1936,13 @@ dialog::backdrop {
     padding: 0 11px;
   }
   .studio-grid .spectrum-stage {
-    height: 240px;
+    min-height: 240px;
   }
   .spectrum-caption {
-    font-size: 8px;
+    font-size: 10px;
   }
   .spectrum-scale {
-    font-size: 7px;
+    font-size: 9px;
   }
   .spectrum-scale > i {
     width: 34px;
@@ -1967,19 +1963,19 @@ dialog::backdrop {
     max-width: none;
   }
   .intro-aside p {
-    flex: 1;
     min-width: 0;
   }
   .privacy-note {
     flex-shrink: 0;
+    white-space: normal;
   }
   .inspector-copy {
-    font-size: 11px;
+    font-size: 12.5px;
   }
   .edit-hint {
-    font-size: 9px;
+    font-size: 10.5px;
   }
   .inspector h2 {
-    font-size: 22px;
+    font-size: 24px;
   }
 }

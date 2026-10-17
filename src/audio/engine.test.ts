@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeClip, processClip, validateClip } from './engine';
+import {
+  analyzeClip,
+  computeSpectrogram,
+  processClip,
+  subtractChannels,
+  validateClip,
+} from './engine';
 import { createDemo, DEMOS } from './demos';
 import { fft } from './fft';
 import { FFT_SIZE, HANN, HOP_SIZE, transformChannels } from './stft';
@@ -446,5 +452,53 @@ describe('original generated examples', () => {
       1,
       3,
     );
+  });
+});
+
+describe('difference between original and edited sound', () => {
+  it('is exact, preserves channel count and length, and contains only the removed tone', () => {
+    const left = combine(tone(1500), tone(375));
+    const right = combine(tone(2600), tone(90, 1, 0.4));
+    const source = clip([left, right]);
+    const processed = processClip(source, [reduction]);
+    const removed = subtractChannels(source.channels, processed.channels);
+    expect(removed).toHaveLength(2);
+    expect(removed[0]).toHaveLength(left.length);
+    expect(removed[1]).toHaveLength(right.length);
+    for (let i = 0; i < left.length; i++) {
+      expect(removed[0][i]).toBe(Math.fround(left[i] - processed.channels[0][i]));
+      expect(removed[1][i]).toBe(Math.fround(right[i] - processed.channels[1][i]));
+    }
+    // The reduction took 1500 Hz down by 30 dB, so the removed signal holds almost all of
+    // that tone and almost none of the untouched 375 Hz tone.
+    expect(amplitude(removed[0], 1500) / amplitude(left, 1500)).toBeCloseTo(
+      1 - 10 ** (-30 / 20),
+      3,
+    );
+    expect(amplitude(removed[0], 375) / amplitude(left, 375)).toBeLessThan(1e-3);
+    // The right channel is outside the band; only leakage from the tones’ abrupt edges remains.
+    expect(rms(removed[1]) / rms(right)).toBeLessThan(5e-3);
+  });
+  it('rejects mismatched shapes instead of guessing', () => {
+    expect(() => subtractChannels([tone(1500)], [tone(1500), tone(375)])).toThrow(/channels/);
+    expect(() => subtractChannels([tone(1500)], [tone(1500, 0.5)])).toThrow(/samples/);
+  });
+});
+
+describe('spectrogram thumbnails', () => {
+  it('computes a small real spectrogram that still shows the example’s problem sound', () => {
+    const preview = computeSpectrogram(createDemo('melody'), 96, 40);
+    expect(preview.frames).toBe(96);
+    expect(preview.bins).toBe(40);
+    expect(preview.values).toHaveLength(96 * 40);
+    const full = computeSpectrogram(createDemo('melody'));
+    expect(full.frames).toBe(Math.ceil((12 * sampleRate) / HOP_SIZE));
+    expect(full.bins).toBe(256);
+    // The 3.2 kHz whistle is the brightest thing in its row of the thumbnail, mid-clip.
+    const row = (data: typeof preview, hz: number) =>
+      Math.round((Math.log(hz / data.minHz) / Math.log(data.maxHz / data.minHz)) * (data.bins - 1));
+    const whistle = preview.values[48 * preview.bins + row(preview, 3200)];
+    const quiet = preview.values[48 * preview.bins + row(preview, 9000)];
+    expect(whistle).toBeGreaterThan(quiet + 20);
   });
 });

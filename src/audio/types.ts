@@ -49,8 +49,11 @@ export interface Demo {
 }
 export type WorkerRequest =
   | { id: number; type: 'load'; clip: AudioClip }
-  | { id: number; type: 'process'; edits: SpectralEdit[] };
+  | { id: number; type: 'process'; edits: SpectralEdit[] }
+  | { id: number; type: 'previews' };
 export type WorkerResponse =
   | { id: number; type: 'loaded'; analysis: Analysis }
-  | { id: number; type: 'processed'; result: ProcessResult }
+  /** `removed` is the original minus the result: exactly what the edits took out. */
+  | { id: number; type: 'processed'; result: ProcessResult; removed: ProcessResult }
+  | { id: number; type: 'previews'; previews: Record<DemoId, SpectrogramData> }
   | { id: number; type: 'error'; message: string };

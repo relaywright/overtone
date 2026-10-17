@@ -36,6 +36,18 @@ Five changes since the release above, each with a regression test that fails on 
 
 Checked locally on the production build: 52 unit tests pass; 43 browser checks pass at 1440px and 390px in Chromium, with the touch-only case skipped on desktop as before; `tests/studio.spec.ts` passes in Firefox and WebKit on Linux. The desktop and phone screenshots were recaptured to show the Load recipe button. The public site will be re-verified after the GitHub Actions deployment of this change; until then, the October 3 evidence above describes the live site.
 
+## October 17, 2026 update
+
+A portfolio pass with five additions, each covered by tests that fail on the previous code:
+
+- **Removed view.** A third comparison view plays and pictures the original minus the edited sound, sample for sample, so a listener can hear exactly what an edit took out. A unit test checks the difference is exact, preserves channel count and length, and holds almost all of a reduced tone and almost none of an untouched one. A browser test plays it, checks its peak is well below the original's, and confirms Export WAV still saves the edited sound. With no edits left the studio returns to the original instead of offering an empty comparison.
+- **Share links.** For the three generated examples the edit list is kept in the page address after `#`, and **Copy link** copies it. Unit tests cover exact round-tripping, the edit limit, tampered and oversized links and edits outside the example. Browser tests open a link in a fresh load and by changing the fragment of an open page, and check the exported WAV is byte-identical; a local file clears the address and disables the button; an unreadable link reports itself and leaves the example usable.
+- **Real example thumbnails.** The cards' decorative bars were replaced by small spectrograms the worker computes from the same synthesized samples, with the studio palette. A browser test reads the canvases back and checks they are real, distinct pictures.
+- **Note names.** The hover readout adds the nearest equal-tempered note and its offset in cents (unit-tested against A4, C4, C8 and off-pitch values; browser-tested on the live readout).
+- **Legibility and framing.** Type sizes rose across the studio (body 13–14px, nothing under 9px, including on phones), the spectrogram now fills the studio's height instead of leaving a gap under the waveform, and the page carries Open Graph and Twitter tags with a card captured from the real studio.
+
+Checked locally on the production build: 63 unit tests pass; 53 browser checks pass at 1440px and 390px in Chromium, with the touch-only case skipped on desktop as before. The layout pass also surfaced and fixed a regression the existing selection-accuracy test caught: with the spectrogram filling the studio's height, the inspector's selection card changed height when a box was first drawn, which resized the stage mid-drag. The inspector's blocks now keep one height across those states, so the stage never moves while a selection is being drawn. Screenshots and the link-preview card were recaptured. The public site will be re-verified after the GitHub Actions deployment of this change; until then, the October 3 evidence above describes the live site.
+
 ## Reproduce
 
 ```sh

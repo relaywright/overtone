@@ -6,16 +6,16 @@ OVERTONE lets you turn down, or keep only, one part of a short recording by draw
 
 ## The screen, top to bottom
 
-1. **Examples.** Three generated sounds, each hiding something to fix. Pick one to load it.
+1. **Examples.** Three generated sounds, each hiding something to fix. Each card shows a small real spectrogram of its sound, so the problem shape is visible before you choose. Pick one to load it.
 2. **File bar.** The name of the current sound, whether it's an example or your own file, and **Import audio**.
-3. **Spectrogram toolbar.** **Original** and **Edited** switch what you hear and see. The arrows are undo and redo.
+3. **Spectrogram toolbar.** **Original**, **Edited** and **Removed** switch what you hear and see. **Removed** is only what your edits took out: the original minus the edited sound. The arrows are undo and redo.
 4. **Transport.** Play or pause, the time readout, loop, and listening volume. The volume slider only changes what you hear; it doesn't change the export.
-5. **Spectrogram.** The picture of the sound. Drag on it to draw a selection box.
+5. **Spectrogram.** The picture of the sound. Drag on it to draw a selection box. With a mouse, a readout in the corner shows the time, frequency and nearest musical note under the pointer, so a hum at 120 Hz reads as "B2 −49¢" and a whistle at 3.2 kHz as "G7 +35¢".
 6. **Waveform.** The overall loudness over time. Click or drag here to jump to a moment.
 7. **Precise selection.** Opens four number boxes (start time, end time, low frequency, high frequency) so you can type an exact selection instead of dragging. The box follows along as you type. When you press <kbd>Enter</kbd> or move to another field, a value outside the allowed range moves to the nearest one that fits.
 8. **Edit panel** (right side, or below on a phone). Shows your selection, sets the strength, and applies **Reduce** or **Isolate**. On an example, a **Find the…** button selects the problem sound for you.
 9. **Edit history.** Every edit you've applied, in order, plus **Reset edits**.
-10. **Export row.** **Export WAV** saves the edited audio. **Download recipe** saves a list of your edits, and **Load recipe** applies a saved list again.
+10. **Export row.** **Export WAV** saves the edited audio. **Download recipe** saves a list of your edits, and **Load recipe** applies a saved list again. **Copy link** copies a web address that opens the current example with your edits already applied.
 11. **Status bar.** What the studio is doing right now, plus the sample rate, mono or stereo, and the loudest peak.
 
 ## Reading the spectrogram
@@ -73,6 +73,7 @@ Try it on _Glasshouse_: press **Find the whistle**.
 - **Tight boxes sound better.** Everything inside the box changes, including parts of sounds you wanted to keep.
 - **Gentle first.** Start around −20 dB and go stronger only if you need to. Strong edits are more likely to leave a hollow or ringing sound.
 - **Listen, don't just look.** The picture has limited detail. Applying an edit pauses playback, so press **Play**, then switch between **Original** and **Edited** while it plays, ideally on headphones.
+- **Check what you took out.** Switch to **Removed** to hear only the difference. If you hear parts of the voice or music you wanted to keep, the box is too big or the strength too high. Its spectrogram shows the same thing: ideally just the shape you boxed.
 - **Stack edits.** Each edit is a separate box. You can apply up to 12 per clip, and undo any time.
 - **Very small boxes are refused.** The editor needs at least about two frequency steps and one analysis window (around 0.09 seconds at 24 kHz) to make an audible change. It tells you if your box is too small.
 
@@ -81,6 +82,7 @@ Try it on _Glasshouse_: press **Find the whistle**.
 - **Export WAV** downloads the edited sound as a standard 16-bit WAV file, with the same length, sample rate and number of channels as the decoded original.
 - **Download recipe** downloads `overtone-recipe.json`: the source name, sample rate, length, and every edit's box and strength. It doesn't contain any audio.
 - **Load recipe** opens a saved recipe and applies its edits to the current sound, replacing any edits you have. Open the same sound first (for an example, choose it; for your own recording, import the same file). On the same sound, the result is identical to the original edit. If the recipe was saved from a different file or sample rate, its edits are still applied when they fit, and the status bar warns that the result may not match. Undo steps back through the loaded edits one at a time.
+- **Copy link** copies the page address with your edits encoded after the `#`. Opening it loads that example and applies the edits, so the result is identical, down to the exported WAV. On an example, the address bar always holds this link, so reloading the page keeps your edits. Links work only for the three examples: a link cannot carry your own recording, so importing a file clears the address and turns the button off. Nothing in the link is sent to a server; browsers never send the part after `#`.
 - Nothing is saved automatically. Audio and history live in the page's memory, so export before closing or reloading.
 
 ## Keyboard and touch
@@ -117,6 +119,9 @@ On a phone or tablet, drag on the spectrogram with one finger. The layout stacks
 | "This file is not an OVERTONE recipe"              | Choose a `.json` file saved with **Download recipe**.                                                                                                                                                     |
 | "This recipe was made for the … example"           | Choose the example it names, then load the recipe again.                                                                                                                                                  |
 | "This recipe's edits do not fit the current sound" | An edit reaches past the end of this sound or above its highest frequency. Import the sound the recipe was made for, then load it again.                                                                  |
+| "This link's edits could not be read"              | The address was cut short or changed. Ask for the link again, or copy it from the address bar after the edit is applied.                                                                                  |
+| "This link's edits do not fit the … example"       | The link names an edit outside that example's length or frequency range. Ask for the link again.                                                                                                          |
+| "Copying was blocked"                              | The browser refused clipboard access. The address bar already holds the same link, so copy it from there.                                                                                                 |
 | "Widen the selection…"                             | The box is too small to make an audible change. Make it taller, wider, or both.                                                                                                                           |
 | "12-edit limit reached"                            | Undo or reset some edits, or export and re-import the result to keep going.                                                                                                                               |
 | "Some samples exceed full scale…"                  | Parts of the sound are louder than a WAV can hold, so they'll distort on export. If an edit caused it, undo that edit. If the imported file was already that loud, lower its volume in another app first. |
@@ -126,7 +131,7 @@ On a phone or tablet, drag on the spectrogram with one finger. The layout stacks
 
 ## Privacy
 
-Everything happens in your browser tab. Files are decoded and processed on your device and never uploaded. There are no accounts, no tracking and no analytics. The page only downloads its own code, fonts and icons.
+Everything happens in your browser tab. Files are decoded and processed on your device and never uploaded. There are no accounts, no tracking and no analytics. The page only downloads its own code, fonts and icons. A share link carries the edit settings for an example in the part of the address after `#`, which browsers keep out of every request.
 
 ## Want to know how it works?
 

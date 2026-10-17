@@ -1,5 +1,16 @@
-import { analyzeClip, processClip } from './audio/engine';
-import type { AudioClip, WorkerRequest, WorkerResponse } from './audio/types';
+import { analyzeClip, computeSpectrogram, processClip, subtractChannels } from './audio/engine';
+import { createDemo, DEMOS } from './audio/demos';
+import type {
+  AudioClip,
+  DemoId,
+  SpectrogramData,
+  WorkerRequest,
+  WorkerResponse,
+} from './audio/types';
+
+/** Example thumbnails: real spectrograms, just far fewer columns and rows than the studio. */
+const PREVIEW_FRAMES = 96;
+const PREVIEW_BINS = 40;
 
 let loadedClip: AudioClip | undefined;
 const scope = self as unknown as {
@@ -9,7 +20,15 @@ const scope = self as unknown as {
 
 scope.onmessage = ({ data }) => {
   try {
-    if (data.type === 'load') {
+    if (data.type === 'previews') {
+      const previews = {} as Record<DemoId, SpectrogramData>;
+      for (const demo of DEMOS)
+        previews[demo.id] = computeSpectrogram(createDemo(demo.id), PREVIEW_FRAMES, PREVIEW_BINS);
+      scope.postMessage(
+        { id: data.id, type: 'previews', previews },
+        Object.values(previews).map((preview) => preview.values.buffer),
+      );
+    } else if (data.type === 'load') {
       loadedClip = undefined;
       const analysis = analyzeClip(data.clip);
       loadedClip = data.clip;
@@ -20,10 +39,18 @@ scope.onmessage = ({ data }) => {
     } else {
       if (!loadedClip) throw new Error('Load an audio clip before processing.');
       const result = processClip(loadedClip, data.edits);
-      scope.postMessage({ id: data.id, type: 'processed', result }, [
+      const removedChannels = subtractChannels(loadedClip.channels, result.channels);
+      const removed = {
+        channels: removedChannels,
+        analysis: analyzeClip({ ...loadedClip, channels: removedChannels }),
+      };
+      scope.postMessage({ id: data.id, type: 'processed', result, removed }, [
         ...result.channels.map((channel) => channel.buffer),
         result.analysis.spectrogram.values.buffer,
         result.analysis.waveform.buffer,
+        ...removed.channels.map((channel) => channel.buffer),
+        removed.analysis.spectrogram.values.buffer,
+        removed.analysis.waveform.buffer,
       ]);
     }
   } catch (error) {

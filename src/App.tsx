@@ -10,6 +10,7 @@ import {
   FileAudio,
   Headphones,
   Info,
+  Link2,
   LoaderCircle,
   LockKeyhole,
   Maximize2,
@@ -30,12 +31,15 @@ import type {
   DemoId,
   Selection,
   SpectralEdit,
+  SpectrogramData,
   WorkerResponse,
 } from './audio/types';
 import { createDemo, DEMOS } from './audio/demos';
 import { encodeWav } from './audio/wav';
 import { createRecipe, MAX_RECIPE_BYTES, readRecipe } from './audio/recipe';
+import { encodeShare, readShare } from './audio/share';
 import { Spectrogram } from './components/Spectrogram';
+import { Thumbnail } from './components/Thumbnail';
 import { Waveform } from './components/Waveform';
 import { InfoDialog } from './components/InfoDialog';
 import { PreciseField } from './components/PreciseField';
@@ -53,6 +57,26 @@ const fmtTime = (seconds: number) => {
     .padStart(5, '0')}`;
 };
 const db = (value: number) => (value > 0 ? `${(20 * Math.log10(value)).toFixed(1)}` : '−∞');
+type View = 'original' | 'edited' | 'removed';
+interface Rendered {
+  clip: AudioClip;
+  analysis: Analysis;
+}
+/** The address may carry an example and its edits (see src/audio/share.ts). Read it once. */
+function readInitialShare(): {
+  demo: DemoId;
+  clip?: AudioClip;
+  edits: SpectralEdit[];
+  error: string;
+} {
+  try {
+    const shared = readShare(window.location.hash, MAX_EDITS, () => crypto.randomUUID());
+    if (shared) return { demo: shared.demo, clip: shared.clip, edits: shared.edits, error: '' };
+  } catch (reason) {
+    return { demo: 'melody', edits: [], error: reason instanceof Error ? reason.message : '' };
+  }
+  return { demo: 'melody', edits: [], error: '' };
+}
 function download(data: BlobPart, type: string, name: string) {
   const url = URL.createObjectURL(new Blob([data], { type }));
   const a = document.createElement('a');
@@ -63,14 +87,16 @@ function download(data: BlobPart, type: string, name: string) {
 }
 
 export default function App() {
-  const [demoId, setDemoId] = useState<DemoId | null>('melody');
+  const [initial] = useState(readInitialShare);
+  const [demoId, setDemoId] = useState<DemoId | null>(initial.demo);
   const [clip, setClip] = useState<AudioClip | null>(null);
   const [original, setOriginal] = useState<Analysis | null>(null);
-  const [edited, setEdited] = useState<{ clip: AudioClip; analysis: Analysis } | null>(null);
+  const [edited, setEdited] = useState<{ edited: Rendered; removed: Rendered } | null>(null);
+  const [previews, setPreviews] = useState<Partial<Record<DemoId, SpectrogramData>> | null>(null);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [edits, setEdits] = useState<SpectralEdit[]>([]);
   const [future, setFuture] = useState<SpectralEdit[]>([]);
-  const [view, setView] = useState<'original' | 'edited'>('original');
+  const [view, setView] = useState<View>('original');
   const [reduction, setReduction] = useState(-36);
   const [processing, setBusy] = useState(true);
   const [decoding, setDecoding] = useState(false);
@@ -92,10 +118,17 @@ export default function App() {
   const recipeInput = useRef<HTMLInputElement>(null);
   const readyNotice = useRef('');
   const importId = useRef(0);
+  // Edits carried by the opening link, applied once the example has loaded.
+  const linkedEdits = useRef(initial.edits);
+  const linkError = useRef(initial.error);
+  const processRef = useRef<(edits: SpectralEdit[], future: SpectralEdit[], ready: string) => void>(
+    () => {},
+  );
   const busy = processing || decoding;
   const playback = usePlayback(useCallback((message: string) => setError(message), []));
   const duration = clip ? clip.channels[0].length / clip.sampleRate : 12;
-  const current = view === 'edited' && edited ? edited.analysis : original;
+  const shown = edited && view !== 'original' ? edited[view] : null;
+  const current = shown?.analysis ?? original;
   const activeDemo = DEMOS.find((d) => d.id === demoId);
 
   const loadClip = useCallback(
@@ -126,9 +159,14 @@ export default function App() {
     const instance = new Worker(new URL('./audio.worker.ts', import.meta.url), { type: 'module' });
     worker.current = instance;
     instance.onmessage = ({ data }: MessageEvent<WorkerResponse>) => {
+      if (data.type === 'previews') {
+        setPreviews(data.previews);
+        return;
+      }
       if (data.id !== requestId.current) return;
       setBusy(false);
       if (data.type === 'error') {
+        linkedEdits.current = [];
         setEdits(committedEdits.current);
         setFuture(committedFuture.current);
         setError(data.message);
@@ -138,13 +176,40 @@ export default function App() {
       if (data.type === 'loaded') {
         setOriginal(data.analysis);
         setNotice('Ready. Press Play to listen.');
+        if (linkError.current) {
+          setError(linkError.current);
+          linkError.current = '';
+        }
+        if (linkedEdits.current.length) {
+          const linked = linkedEdits.current;
+          linkedEdits.current = [];
+          const count = `${linked.length} ${linked.length === 1 ? 'edit' : 'edits'}`;
+          processRef.current(
+            linked,
+            [],
+            `Link opened: ${count} applied. Press Play, then compare Original and Edited.`,
+          );
+        }
       }
       if (data.type === 'processed' && clipRef.current) {
         committedEdits.current = pendingEdits.current;
         committedFuture.current = pendingFuture.current;
+        // With no edits left there is nothing to compare: show the original itself.
+        if (pendingEdits.current.length === 0) {
+          setEdited(null);
+          setView('original');
+          setNotice(readyNotice.current);
+          return;
+        }
         setEdited({
-          clip: { ...clipRef.current, channels: data.result.channels },
-          analysis: data.result.analysis,
+          edited: {
+            clip: { ...clipRef.current, channels: data.result.channels },
+            analysis: data.result.analysis,
+          },
+          removed: {
+            clip: { ...clipRef.current, channels: data.removed.channels },
+            analysis: data.removed.analysis,
+          },
         });
         setView('edited');
         setNotice(readyNotice.current);
@@ -153,6 +218,7 @@ export default function App() {
     instance.onerror = () => {
       requestId.current++;
       importId.current++;
+      linkedEdits.current = [];
       setDecoding(false);
       setWorkerFailed(true);
       setBusy(false);
@@ -164,15 +230,25 @@ export default function App() {
       setError('The audio processor stopped. Restart the studio to load a fresh example.');
       setNotice('Audio processor unavailable.');
     };
-    loadClip(createDemo('melody'), 'melody');
+    loadClip(initial.clip ?? createDemo(initial.demo), initial.demo);
+    // Thumbnails are computed after the first example so the studio is never waiting on them.
+    instance.postMessage({ id: 0, type: 'previews' });
     return () => {
       instance.terminate();
       worker.current = null;
     };
-  }, [loadClip, restart]);
+  }, [loadClip, restart, initial]);
   useEffect(() => {
-    if (!busy && original) playback.setClip(view === 'edited' && edited ? edited.clip : clip, true);
-  }, [view, edited, original, clip, busy, playback.setClip]);
+    if (!busy && original) playback.setClip(shown?.clip ?? clip, true);
+  }, [shown, original, clip, busy, playback.setClip]);
+  // The address always holds a link to the current edits of an example (never to a local
+  // file, which a link cannot recreate). replaceState keeps the Back button unaffected.
+  useEffect(() => {
+    const fragment = demoId ? encodeShare(demoId, edits) : '';
+    const { pathname, search, hash } = window.location;
+    const next = `${pathname}${search}${fragment ? `#${fragment}` : ''}`;
+    if (`${pathname}${search}${hash}` !== next) window.history.replaceState(null, '', next);
+  }, [demoId, edits]);
   useEffect(() => {
     if (!busy) return;
     const timer = window.setTimeout(() => {
@@ -202,6 +278,29 @@ export default function App() {
     },
     [playback.pause],
   );
+  useEffect(() => {
+    processRef.current = process;
+  }, [process]);
+  // A share link pasted into a tab that already shows the studio changes only the fragment,
+  // which does not reload the page. Treat it like opening the link.
+  useEffect(() => {
+    const onHashChange = () => {
+      let shared;
+      try {
+        shared = readShare(window.location.hash, MAX_EDITS, () => crypto.randomUUID());
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : 'This link could not be opened.');
+        return;
+      }
+      if (!shared || workerFailed) return;
+      importId.current++;
+      setDecoding(false);
+      linkedEdits.current = shared.edits;
+      loadClip(shared.clip, shared.demo);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [loadClip, workerFailed]);
   const undo = useCallback(() => {
     if (busy || !edits.length) return;
     process(edits.slice(0, -1), [edits[edits.length - 1], ...future]);
@@ -336,13 +435,24 @@ export default function App() {
   }
   function exportWav() {
     if (!clip || busy || !original) return;
-    const output = edited?.clip ?? clip;
+    const output = edited?.edited.clip ?? clip;
     const filename = clip.name
       .replace(/\.[^.]+$/, '')
       .replace(/[^a-zA-Z0-9_-]+/g, '-')
       .toLowerCase();
     download(encodeWav(output), 'audio/wav', `${filename}-overtone.wav`);
     setNotice('WAV exported. Your edits are in the file.');
+  }
+  async function copyLink() {
+    if (!demoId || !edits.length) return;
+    const { origin, pathname, search } = window.location;
+    const url = `${origin}${pathname}${search}#${encodeShare(demoId, edits)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setNotice('Link copied. It opens this example with these edits already applied.');
+    } catch {
+      setNotice('Copying was blocked, but the address bar already holds the link to this edit.');
+    }
   }
   function exportRecipe() {
     if (!clip) return;
@@ -458,14 +568,10 @@ export default function App() {
                   loadClip(createDemo(demo.id), demo.id);
                 }}
               >
-                <span className={`sample-art sample-art-${index}`} aria-hidden="true">
-                  {Array.from({ length: 13 }, (_, n) => (
-                    <i
-                      key={n}
-                      style={{ height: `${12 + Math.sin(n * (index + 1) * 0.7) ** 2 * 30}px` }}
-                    />
-                  ))}
-                </span>
+                <Thumbnail
+                  data={previews?.[demo.id] ?? null}
+                  label={`Spectrogram of ${demo.name}`}
+                />
                 <span>
                   <strong>{demo.name}</strong>
                   <small>{demo.subtitle}</small>
@@ -523,6 +629,15 @@ export default function App() {
                     onClick={() => setView('edited')}
                   >
                     Edited {edits.length > 0 && <span className="tiny-dot" />}
+                  </button>
+                  <button
+                    aria-pressed={view === 'removed'}
+                    className={view === 'removed' ? 'active' : ''}
+                    disabled={busy || !edited}
+                    title="Only what your edits took out"
+                    onClick={() => setView('removed')}
+                  >
+                    Removed
                   </button>
                 </div>
                 <div className="history-buttons">
@@ -596,7 +711,7 @@ export default function App() {
                   onSelectionChange={setSelection}
                   playhead={playback.position}
                   disabled={busy}
-                  edits={view === 'edited' ? edits : []}
+                  edits={view === 'original' ? [] : edits}
                 />
                 {busy && (
                   <div className="processing">
@@ -613,7 +728,10 @@ export default function App() {
               </div>
               <div className="spectrum-footer">
                 <span>
-                  <Crosshair size={13} /> Drag a box around a bright shape to select that sound
+                  <Crosshair size={13} />{' '}
+                  {view === 'removed'
+                    ? 'Showing only what your edits took out: the original minus the edited sound, sample for sample.'
+                    : 'Drag a box around a bright shape to select that sound'}
                 </span>
               </div>
               <div className="waveform-row">
@@ -880,9 +998,10 @@ export default function App() {
             <span className="eyebrow">TAKE IT WITH YOU</span>
             <p>
               Export WAV saves the edited sound. A recipe is a small text file listing your edits,
-              not the audio. Load one to repeat those edits on the same sound.
+              not the audio. Load one to repeat those edits on the same sound. A link opens an
+              example with your edits already applied.
             </p>
-            {(edited?.analysis.stats.peak ?? original?.stats.peak ?? 0) > 1 && (
+            {(edited?.edited.analysis.stats.peak ?? original?.stats.peak ?? 0) > 1 && (
               <p className="limit-note">
                 Some samples exceed full scale and will clip in the WAV export. Undo a strong edit
                 to avoid distortion.
@@ -890,6 +1009,18 @@ export default function App() {
             )}
           </div>
           <div className="export-actions">
+            <button
+              className="text-button recipe-button"
+              onClick={() => void copyLink()}
+              disabled={busy || !original || !demoId || !edits.length}
+              title={
+                demoId
+                  ? 'Copy a link that opens this example with these edits'
+                  : 'Links carry edits for the examples; a local file cannot travel in a link'
+              }
+            >
+              <Link2 size={14} /> Copy link
+            </button>
             <button
               className="text-button recipe-button"
               onClick={() => recipeInput.current?.click()}

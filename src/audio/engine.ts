@@ -1,6 +1,6 @@
 import { fft } from './fft';
 import { FFT_SIZE, HANN, HOP_SIZE, transformChannels } from './stft';
-import type { Analysis, AudioClip, ProcessResult, SpectralEdit } from './types';
+import type { Analysis, AudioClip, ProcessResult, SpectralEdit, SpectrogramData } from './types';
 
 export const MAX_DURATION = 60;
 export const MIN_SAMPLE_RATE = 8000;
@@ -63,26 +63,24 @@ export function validateEdits(clip: AudioClip, edits: SpectralEdit[]): void {
   }
 }
 
-export function analyzeClip(clip: AudioClip): Analysis {
-  validateClip(clip);
+/** Display columns and rows of the studio spectrogram. Thumbnails ask for far fewer. */
+export const SPECTROGRAM_FRAMES = 720;
+export const SPECTROGRAM_BINS = 256;
+
+/**
+ * A log-frequency power spectrogram of the clip, in dBFS, with at most maxFrames time
+ * columns and exactly bins frequency rows. Every column is a real windowed FFT of the
+ * samples around its center; nothing is interpolated between columns.
+ */
+export function computeSpectrogram(
+  clip: AudioClip,
+  maxFrames = SPECTROGRAM_FRAMES,
+  bins = SPECTROGRAM_BINS,
+): SpectrogramData {
   const { channels, sampleRate } = clip;
   const length = channels[0].length;
   const duration = length / sampleRate;
-  const waveform = new Float32Array(Math.min(640, length));
-  let peak = 0;
-  let energy = 0;
-  for (const channel of channels) {
-    for (let i = 0; i < length; i++) {
-      const value = Math.abs(channel[i]);
-      peak = Math.max(peak, value);
-      energy += value * value;
-      const bucket = Math.min(waveform.length - 1, Math.floor((i * waveform.length) / length));
-      waveform[bucket] = Math.max(waveform[bucket], value);
-    }
-  }
-
-  const bins = 256;
-  const frames = Math.min(720, Math.max(1, Math.ceil(length / HOP_SIZE)));
+  const frames = Math.min(maxFrames, Math.max(1, Math.ceil(length / HOP_SIZE)));
   const minHz = 40;
   const maxHz = sampleRate / 2;
   const values = new Float32Array(frames * bins);
@@ -123,11 +121,48 @@ export function analyzeClip(clip: AudioClip): Analysis {
       values[frame * bins + bin] = Math.max(-100, 10 * Math.log10(Math.max(1e-10, power)));
     }
   }
+  return { values, bins, frames, minHz, maxHz, duration };
+}
+
+export function analyzeClip(clip: AudioClip): Analysis {
+  validateClip(clip);
+  const { channels } = clip;
+  const length = channels[0].length;
+  const waveform = new Float32Array(Math.min(640, length));
+  let peak = 0;
+  let energy = 0;
+  for (const channel of channels) {
+    for (let i = 0; i < length; i++) {
+      const value = Math.abs(channel[i]);
+      peak = Math.max(peak, value);
+      energy += value * value;
+      const bucket = Math.min(waveform.length - 1, Math.floor((i * waveform.length) / length));
+      waveform[bucket] = Math.max(waveform[bucket], value);
+    }
+  }
   return {
-    spectrogram: { values, bins, frames, minHz, maxHz, duration },
+    spectrogram: computeSpectrogram(clip),
     waveform,
     stats: { peak, rms: Math.sqrt(energy / (length * channels.length)) },
   };
+}
+
+/**
+ * Sample-by-sample difference between two clips of the same shape: what an edit took
+ * out. Original minus edited is exact, so a reduction of a whistle leaves only the
+ * whistle, and an isolation leaves everything outside the kept region.
+ */
+export function subtractChannels(minuend: Float32Array[], subtrahend: Float32Array[]) {
+  if (minuend.length !== subtrahend.length)
+    throw new Error('Both sounds must have the same number of channels.');
+  return minuend.map((channel, index) => {
+    const other = subtrahend[index];
+    if (channel.length !== other.length)
+      throw new Error('Both sounds must contain the same number of samples.');
+    const output = new Float32Array(channel.length);
+    for (let i = 0; i < channel.length; i++) output[i] = channel[i] - other[i];
+    return output;
+  });
 }
 
 export function processClip(clip: AudioClip, edits: SpectralEdit[]): ProcessResult {
